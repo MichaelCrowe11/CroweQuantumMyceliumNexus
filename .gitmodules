@@ -1,0 +1,3 @@
+[submodule "crowe-sense"]
+	path = crowe-sense
+	url = https://github.com/MichaelCrowe11/crowe-sense.git

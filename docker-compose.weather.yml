@@ -1,0 +1,275 @@
+version: "3.9"
+
+x-env: &env
+  env_file: .env.unified
+
+x-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "100m"
+    max-file: "5"
+
+services:
+  # ==========================================
+  # CROWESENSE WEATHER SERVICES
+  # ==========================================
+  
+  crowe-weather-service:
+    build:
+      context: ./crowe-sense
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    <<: *env
+    environment:
+      APP_NAME: CroweWeatherService
+      DATABASE_URL: postgresql://${UNIFIED_DB_USER}:${UNIFIED_DB_PASSWORD}@unified-db:5432/weather
+      REDIS_URL: redis://:${REDIS_PASSWORD}@unified-cache:6379/3
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      WEATHER_API_KEYS: ${TOMORROW_API_KEY},${OPENWEATHER_API_KEY},${NOAA_API_KEY}
+      SENSOR_NETWORK_ENABLED: "true"
+      MYCELIUM_INTEGRATION: "true"
+    volumes:
+      - weather_data:/app/data
+      - sensor_configs:/app/configs
+    ports:
+      - "8200:8200"
+    networks:
+      - weather-network
+      - shared-network
+    depends_on:
+      - unified-db
+      - unified-cache
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8200/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging: *logging
+
+  sensor-gateway:
+    build:
+      context: ./crowe-sense
+      dockerfile: Dockerfile.gateway
+    restart: unless-stopped
+    <<: *env
+    environment:
+      GATEWAY_MODE: "mqtt"
+      MQTT_BROKER: mqtt://mqtt-broker:1883
+      SENSOR_DISCOVERY: "auto"
+      DATA_PIPELINE_URL: http://data-pipeline:8080
+      CALIBRATION_ENABLED: "true"
+    volumes:
+      - sensor_data:/app/sensor_data
+      - ./crowe-sense/calibration:/app/calibration:ro
+    ports:
+      - "1883:1883"  # MQTT
+      - "8883:8883"  # MQTT over TLS
+      - "8201:8080"  # Gateway API
+    networks:
+      - weather-network
+      - iot-network
+    logging: *logging
+
+  weather-predictor:
+    build:
+      context: ./integration
+      dockerfile: Dockerfile.predictor
+    restart: unless-stopped
+    <<: *env
+    command: python -m weather_predictor.main
+    environment:
+      MODEL_PATH: /app/models
+      DATABASE_URL: postgresql://${UNIFIED_DB_USER}:${UNIFIED_DB_PASSWORD}@unified-db:5432/weather
+      REDIS_URL: redis://:${REDIS_PASSWORD}@unified-cache:6379/4
+      PREDICTION_INTERVAL: 3600  # 1 hour
+      ENSEMBLE_MODELS: "short_term,long_term,mycological,quantum"
+    volumes:
+      - weather_models:/app/models
+      - prediction_cache:/app/cache
+    networks:
+      - weather-network
+      - shared-network
+      - quantum-network
+    depends_on:
+      - crowe-weather-service
+      - quantum-core
+    logging: *logging
+
+  weather-api:
+    build:
+      context: ./integration
+      dockerfile: Dockerfile.weather-api
+    restart: unless-stopped
+    <<: *env
+    environment:
+      API_VERSION: v2
+      DATABASE_URL: postgresql://${UNIFIED_DB_USER}:${UNIFIED_DB_PASSWORD}@unified-db:5432/weather
+      REDIS_URL: redis://:${REDIS_PASSWORD}@unified-cache:6379/5
+      RATE_LIMIT: "100/minute"
+      CORS_ORIGINS: ${CORS_ORIGINS}
+    ports:
+      - "8202:8000"
+    networks:
+      - weather-network
+      - shared-network
+    depends_on:
+      - crowe-weather-service
+      - weather-predictor
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v2/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging: *logging
+
+  # ==========================================
+  # IOT SENSOR NETWORK
+  # ==========================================
+  
+  mqtt-broker:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    volumes:
+      - ./crowe-sense/mosquitto/config:/mosquitto/config:ro
+      - ./crowe-sense/mosquitto/data:/mosquitto/data
+      - ./crowe-sense/mosquitto/log:/mosquitto/log
+    ports:
+      - "1884:1883"  # MQTT
+      - "9001:9001"  # WebSocket
+    networks:
+      - iot-network
+    logging: *logging
+
+  sensor-simulator:
+    build:
+      context: ./crowe-sense
+      dockerfile: Dockerfile.simulator
+    restart: unless-stopped
+    environment:
+      MQTT_BROKER: mqtt://mqtt-broker:1883
+      SIMULATION_MODE: "realistic"
+      SENSOR_COUNT: 10
+      UPDATE_INTERVAL: 30  # seconds
+      SENSOR_TYPES: "temperature,humidity,co2,soil_moisture,ph,light"
+    networks:
+      - iot-network
+    depends_on:
+      - mqtt-broker
+    logging: *logging
+
+  # ==========================================
+  # WEATHER DATA VISUALIZATION
+  # ==========================================
+  
+  weather-dashboard:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.weather
+    restart: unless-stopped
+    environment:
+      REACT_APP_WEATHER_API: http://weather-api:8000/api/v2
+      REACT_APP_SENSOR_GATEWAY: ws://sensor-gateway:8080/ws
+      REACT_APP_ENABLE_3D_VISUALIZATION: "true"
+      REACT_APP_MAP_PROVIDER: "mapbox"
+      MAPBOX_TOKEN: ${MAPBOX_TOKEN}
+    ports:
+      - "3002:3000"
+    networks:
+      - weather-network
+    logging: *logging
+
+  # ==========================================
+  # DATA PROCESSING & ANALYTICS
+  # ==========================================
+  
+  weather-analytics:
+    build:
+      context: ./integration
+      dockerfile: Dockerfile.analytics
+    restart: unless-stopped
+    <<: *env
+    command: python -m analytics.weather_analytics
+    environment:
+      DATABASE_URL: postgresql://${UNIFIED_DB_USER}:${UNIFIED_DB_PASSWORD}@unified-db:5432/weather
+      CLICKHOUSE_URL: clickhouse://analytics-db:9000/weather
+      AGGREGATION_INTERVAL: 300  # 5 minutes
+      RETENTION_DAYS: 365
+    volumes:
+      - analytics_data:/app/analytics
+    networks:
+      - weather-network
+      - shared-network
+    depends_on:
+      - analytics-db
+    logging: *logging
+
+  analytics-db:
+    image: clickhouse/clickhouse-server:latest
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_DB: weather_analytics
+      CLICKHOUSE_USER: analytics
+      CLICKHOUSE_PASSWORD: ${ANALYTICS_DB_PASSWORD}
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./config/clickhouse:/etc/clickhouse-server/config.d:ro
+    ports:
+      - "8123:8123"  # HTTP interface
+      - "9000:9000"  # Native protocol
+    networks:
+      - weather-network
+    logging: *logging
+
+  # ==========================================
+  # INTEGRATION WITH MAIN PLATFORM
+  # ==========================================
+  
+  weather-orchestrator:
+    build:
+      context: ./integration
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    <<: *env
+    command: python -m integration.crowe_sense_weather
+    environment:
+      ORCHESTRATOR_MODE: weather
+      DATABASE_URL: postgresql://${UNIFIED_DB_USER}:${UNIFIED_DB_PASSWORD}@unified-db:5432/shared
+      REDIS_URL: redis://:${REDIS_PASSWORD}@unified-cache:6379/6
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      MYCELIUM_URL: http://mycelium-app:8000
+      QUANTUM_URL: http://quantum-core:9000
+      WEATHER_SERVICE_URL: http://crowe-weather-service:8200
+    volumes:
+      - integration_configs:/app/configs
+      - shared_data:/app/shared_data
+    networks:
+      - weather-network
+      - shared-network
+      - quantum-network
+      - mycelium-network
+    depends_on:
+      - crowe-weather-service
+      - mycelium-app
+      - quantum-core
+    logging: *logging
+
+volumes:
+  weather_data:
+  weather_models:
+  sensor_data:
+  sensor_configs:
+  prediction_cache:
+  analytics_data:
+  clickhouse_data:
+
+networks:
+  weather-network:
+    driver: bridge
+  iot-network:
+    driver: bridge
+  shared-network:
+    external: true
+  quantum-network:
+    external: true
+  mycelium-network:
+    external: true
