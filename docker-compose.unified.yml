@@ -1,0 +1,400 @@
+version: "3.9"
+
+x-env: &env
+  env_file: .env
+
+x-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "100m"
+    max-file: "5"
+
+x-healthcheck: &healthcheck
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+
+services:
+  # ==========================================
+  # SHARED INFRASTRUCTURE
+  # ==========================================
+  
+  # Unified API Gateway
+  api-gateway:
+    image: kong:3.4
+    restart: unless-stopped
+    ports:
+      - "8000:8000"  # HTTP API
+      - "8443:8443"  # HTTPS API
+      - "8001:8001"  # Admin API
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: unified-db
+      KONG_PG_DATABASE: kong
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: ${KONG_DB_PASSWORD}
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+    depends_on:
+      - unified-db
+    networks:
+      - quantum-network
+      - mycelium-network
+      - shared-network
+    logging: *logging
+
+  # Unified Database (Multi-tenant PostgreSQL)
+  unified-db:
+    image: postgres:15
+    restart: unless-stopped
+    <<: *env
+    environment:
+      POSTGRES_MULTIPLE_DATABASES: mycelium,quantum,kong,shared,audit
+      POSTGRES_USER: ${UNIFIED_DB_USER}
+      POSTGRES_PASSWORD: ${UNIFIED_DB_PASSWORD}
+    volumes:
+      - unified_db_data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
+    networks:
+      - shared-network
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD-SHELL", "pg_isready -U ${UNIFIED_DB_USER}"]
+    logging: *logging
+
+  # Unified Cache & Message Queue
+  unified-cache:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - shared-network
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "redis-cli", "--auth", "${REDIS_PASSWORD}", "ping"]
+    logging: *logging
+
+  # Message Queue for Async Processing
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - shared-network
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+    logging: *logging
+
+  # ==========================================
+  # MYCELIUM ECOLOGICAL INTELLIGENCE
+  # ==========================================
+  
+  mycelium-app:
+    build:
+      context: ./mycelium
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    <<: *env
+    environment:
+      APP_NAME: MyceliumEI
+      DATABASE_URL: postgresql://${UNIFIED_DB_USER}:${UNIFIED_DB_PASSWORD}@unified-db:5432/mycelium
+      REDIS_URL: redis://:${REDIS_PASSWORD}@unified-cache:6379/0
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      QUANTUM_API_URL: http://quantum-core:9000
+      INTEGRATION_ENABLED: "true"
+    volumes:
+      - mycelium_storage:/app/storage
+      - shared_data:/app/shared_data
+    networks:
+      - mycelium-network
+      - shared-network
+    depends_on:
+      - unified-db
+      - unified-cache
+      - rabbitmq
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+    logging: *logging
+
+  mycelium-worker:
+    build:
+      context: ./mycelium
+      dockerfile: Dockerfile.worker
+    restart: unless-stopped
+    <<: *env
+    command: celery -A app.celery worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://${UNIFIED_DB_USER}:${UNIFIED_DB_PASSWORD}@unified-db:5432/mycelium
+      REDIS_URL: redis://:${REDIS_PASSWORD}@unified-cache:6379/0
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+    volumes:
+      - mycelium_storage:/app/storage
+      - shared_data:/app/shared_data
+    networks:
+      - mycelium-network
+      - shared-network
+    depends_on:
+      - mycelium-app
+    logging: *logging
+
+  # ==========================================
+  # CROWE QUANTUM NEXUS AI
+  # ==========================================
+  
+  quantum-core:
+    build:
+      context: ./quantum
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    <<: *env
+    environment:
+      APP_NAME: CroweQuantumNexusAI
+      DATABASE_URL: postgresql://${UNIFIED_DB_USER}:${UNIFIED_DB_PASSWORD}@unified-db:5432/quantum
+      REDIS_URL: redis://:${REDIS_PASSWORD}@unified-cache:6379/1
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      MYCELIUM_API_URL: http://mycelium-app:8000
+      QUANTUM_COMPUTE_ENABLED: "true"
+      GPU_ACCELERATION: ${GPU_ENABLED:-false}
+    volumes:
+      - quantum_models:/app/models
+      - shared_data:/app/shared_data
+    networks:
+      - quantum-network
+      - shared-network
+    depends_on:
+      - unified-db
+      - unified-cache
+      - rabbitmq
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "curl", "-f", "http://localhost:9000/healthz"]
+    logging: *logging
+
+  quantum-worker:
+    build:
+      context: ./quantum
+      dockerfile: Dockerfile.worker
+    restart: unless-stopped
+    <<: *env
+    command: python -m quantum.workers.main
+    environment:
+      DATABASE_URL: postgresql://${UNIFIED_DB_USER}:${UNIFIED_DB_PASSWORD}@unified-db:5432/quantum
+      REDIS_URL: redis://:${REDIS_PASSWORD}@unified-cache:6379/1
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      WORKER_TYPE: quantum_compute
+    volumes:
+      - quantum_models:/app/models
+      - shared_data:/app/shared_data
+    networks:
+      - quantum-network
+      - shared-network
+    depends_on:
+      - quantum-core
+    deploy:
+      replicas: ${QUANTUM_WORKERS:-2}
+    logging: *logging
+
+  # ==========================================
+  # INTEGRATION LAYER
+  # ==========================================
+  
+  integration-orchestrator:
+    build:
+      context: ./integration
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    <<: *env
+    environment:
+      DATABASE_URL: postgresql://${UNIFIED_DB_USER}:${UNIFIED_DB_PASSWORD}@unified-db:5432/shared
+      REDIS_URL: redis://:${REDIS_PASSWORD}@unified-cache:6379/2
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      MYCELIUM_INTERNAL_URL: http://mycelium-app:8000
+      QUANTUM_INTERNAL_URL: http://quantum-core:9000
+      ORCHESTRATION_MODE: active
+    volumes:
+      - integration_configs:/app/configs
+      - shared_data:/app/shared_data
+    networks:
+      - shared-network
+      - quantum-network
+      - mycelium-network
+    depends_on:
+      - mycelium-app
+      - quantum-core
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+    logging: *logging
+
+  data-pipeline:
+    build:
+      context: ./integration
+      dockerfile: Dockerfile.pipeline
+    restart: unless-stopped
+    <<: *env
+    command: python -m pipeline.main
+    environment:
+      DATABASE_URL: postgresql://${UNIFIED_DB_USER}:${UNIFIED_DB_PASSWORD}@unified-db:5432/shared
+      REDIS_URL: redis://:${REDIS_PASSWORD}@unified-cache:6379/2
+      PIPELINE_MODE: streaming
+      BATCH_SIZE: ${PIPELINE_BATCH_SIZE:-1000}
+    volumes:
+      - shared_data:/app/shared_data
+      - pipeline_state:/app/state
+    networks:
+      - shared-network
+    depends_on:
+      - integration-orchestrator
+    logging: *logging
+
+  # ==========================================
+  # UNIFIED FRONTEND
+  # ==========================================
+  
+  unified-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_GATEWAY: https://${DOMAIN}/api
+      REACT_APP_MYCELIUM_ENABLED: "true"
+      REACT_APP_QUANTUM_ENABLED: "true"
+      REACT_APP_WS_ENDPOINT: wss://${DOMAIN}/ws
+    ports:
+      - "3000:3000"
+    networks:
+      - shared-network
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+    logging: *logging
+
+  # ==========================================
+  # MONITORING & OBSERVABILITY
+  # ==========================================
+  
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring-network
+      - shared-network
+    logging: *logging
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel,redis-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "3001:3000"
+    networks:
+      - monitoring-network
+      - shared-network
+    depends_on:
+      - prometheus
+    logging: *logging
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    restart: unless-stopped
+    environment:
+      COLLECTOR_ZIPKIN_HOST_PORT: 9411
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14268:14268"  # Jaeger collector
+    networks:
+      - monitoring-network
+      - shared-network
+    logging: *logging
+
+  # ==========================================
+  # REVERSE PROXY & LOAD BALANCER
+  # ==========================================
+  
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/sites:/etc/nginx/sites-enabled:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_cache:/var/cache/nginx
+    networks:
+      - shared-network
+    depends_on:
+      - api-gateway
+      - unified-frontend
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+    logging: *logging
+
+volumes:
+  # Database volumes
+  unified_db_data:
+  redis_data:
+  rabbitmq_data:
+  
+  # Application volumes
+  mycelium_storage:
+  quantum_models:
+  shared_data:
+  integration_configs:
+  pipeline_state:
+  
+  # Monitoring volumes
+  prometheus_data:
+  grafana_data:
+  
+  # Proxy volumes
+  nginx_cache:
+
+networks:
+  shared-network:
+    driver: bridge
+  quantum-network:
+    driver: bridge
+  mycelium-network:
+    driver: bridge
+  monitoring-network:
+    driver: bridge
