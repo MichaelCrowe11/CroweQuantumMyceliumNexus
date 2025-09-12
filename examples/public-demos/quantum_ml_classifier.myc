@@ -1,0 +1,369 @@
+// Quantum Machine Learning for Mycological Classification
+// Demonstrates QSVM and VQC for identifying fungal species from network patterns
+
+import quantum as qc;
+import machine_learning as ml;
+import mycelial.network as net;
+import visualization as viz;
+import data_processing as dp;
+
+// Public demo: Quantum ML for fungal species classification
+network QuantumMLDemo {
+    // Training dataset: Different fungal species network characteristics
+    let training_data = [
+        // Agaricus bisporus (Button mushroom) - dense, compact networks
+        {
+            species: "Agaricus_bisporus",
+            features: [0.85, 0.62, 0.45, 0.78, 0.91, 0.33, 0.67, 0.54],
+            network_pattern: "compact_radial",
+            branching_angle: 45.0,
+            hyphal_density: 0.85
+        },
+        // Pleurotus ostreatus (Oyster mushroom) - fan-like spreading
+        {
+            species: "Pleurotus_ostreatus", 
+            features: [0.72, 0.89, 0.67, 0.45, 0.56, 0.78, 0.34, 0.82],
+            network_pattern: "fan_spreading",
+            branching_angle: 60.0,
+            hyphal_density: 0.72
+        },
+        // Shiitake - structured, hierarchical networks
+        {
+            species: "Lentinula_edodes",
+            features: [0.68, 0.74, 0.82, 0.69, 0.45, 0.87, 0.56, 0.73],
+            network_pattern: "hierarchical_tree",
+            branching_angle: 35.0,
+            hyphal_density: 0.68
+        },
+        // Chanterelle - irregular, forked patterns
+        {
+            species: "Cantharellus_cibarius",
+            features: [0.91, 0.43, 0.76, 0.82, 0.67, 0.52, 0.89, 0.64],
+            network_pattern: "irregular_forked",
+            branching_angle: 75.0,
+            hyphal_density: 0.91
+        }
+        // Add more species data...
+    ];
+    
+    // Generate synthetic training data for demonstration
+    let extended_training_data = generate_synthetic_species_data(training_data, 200);
+    
+    // Quantum Support Vector Machine (QSVM) implementation
+    quantum fn qsvm_classify(
+        training_features: [[f64]],
+        training_labels: [String],
+        test_features: [f64],
+        feature_map_depth: u32
+    ) -> {classification: String, confidence: f64, quantum_advantage: f64} {
+        
+        let n_features = test_features.len();
+        let n_qubits = ceil_log2(n_features) + 1; // +1 for auxiliary qubit
+        let qubits = qc.allocate(n_qubits);
+        
+        // Quantum feature map (ZZFeatureMap)
+        fn quantum_feature_map(features: [f64], qubits: [Qubit], depth: u32) {
+            // Single qubit rotations
+            for i in 0..min(features.len(), qubits.len()) {
+                qc.ry(qubits[i], 2.0 * features[i]);
+            }
+            
+            // Entangling layers
+            for layer in 0..depth {
+                for i in 0..qubits.len()-1 {
+                    for j in (i+1)..qubits.len()-1 {
+                        let feature_product = features[i % features.len()] * features[j % features.len()];
+                        qc.cz(qubits[i], qubits[j]);
+                        qc.rz(qubits[j], 2.0 * feature_product);
+                        qc.cz(qubits[i], qubits[j]);
+                    }
+                }
+            }
+        }
+        
+        // Apply feature map to test data
+        quantum_feature_map(test_features, qubits, feature_map_depth);
+        
+        // Quantum kernel evaluation with training data
+        let kernel_values: [f64] = [];
+        for (train_features, train_label) in training_features.zip(training_labels) {
+            // Create quantum kernel state
+            let train_qubits = qc.allocate(n_qubits);
+            quantum_feature_map(train_features, train_qubits, feature_map_depth);
+            
+            // Compute inner product (quantum kernel)
+            let kernel_circuit = qc.create_kernel_measurement(qubits, train_qubits);
+            let kernel_value = qc.expectation_value(kernel_circuit);
+            kernel_values.push(kernel_value);
+            
+            qc.deallocate(train_qubits);
+        }
+        
+        // Classical SVM decision using quantum kernel
+        let decision_values = svm_decision(kernel_values, training_labels);
+        let classification = decision_values.keys().max_by(|k| decision_values[k]).unwrap();
+        let confidence = decision_values[classification] / decision_values.values().sum();
+        
+        qc.deallocate(qubits);
+        
+        // Calculate quantum advantage
+        let classical_accuracy = classical_svm_baseline(training_features, training_labels, test_features);
+        let quantum_advantage = confidence - classical_accuracy;
+        
+        return {
+            classification: classification,
+            confidence: confidence,
+            quantum_advantage: quantum_advantage
+        };
+    }
+    
+    // Variational Quantum Classifier (VQC) implementation
+    quantum fn vqc_classify(
+        training_data: [(features: [f64], label: String)],
+        test_features: [f64],
+        num_layers: u32,
+        learning_rate: f64
+    ) -> {classification: String, confidence: f64, loss_history: [f64]} {
+        
+        let n_features = test_features.len();
+        let n_qubits = n_features;
+        let qubits = qc.allocate(n_qubits);
+        
+        // Variational quantum circuit parameters
+        let mut theta: [f64] = (0..(n_qubits * num_layers * 3))
+            .map(|_| random() * 2.0 * PI)
+            .collect();
+        
+        let mut loss_history: [f64] = [];
+        let epochs = 50;
+        
+        // Training loop
+        for epoch in 0..epochs {
+            let mut epoch_loss = 0.0;
+            let mut gradients: [f64] = vec![0.0; theta.len()];
+            
+            for (features, label) in &training_data {
+                // Forward pass
+                let prediction = vqc_forward_pass(features, &theta, qubits, num_layers);
+                let target = species_to_quantum_state(label);
+                
+                // Calculate loss (cross-entropy)
+                let loss = -target.iter()
+                    .zip(prediction.iter())
+                    .map(|(t, p)| t * p.ln())
+                    .sum();
+                epoch_loss += loss;
+                
+                // Compute gradients using parameter shift rule
+                for i in 0..theta.len() {
+                    let plus_theta = theta.clone();
+                    plus_theta[i] += PI / 2.0;
+                    let minus_theta = theta.clone();
+                    minus_theta[i] -= PI / 2.0;
+                    
+                    let plus_pred = vqc_forward_pass(features, &plus_theta, qubits, num_layers);
+                    let minus_pred = vqc_forward_pass(features, &minus_theta, qubits, num_layers);
+                    
+                    gradients[i] += (plus_pred[0] - minus_pred[0]) / 2.0;
+                }
+            }
+            
+            // Update parameters
+            for i in 0..theta.len() {
+                theta[i] -= learning_rate * gradients[i] / training_data.len() as f64;
+            }
+            
+            loss_history.push(epoch_loss / training_data.len() as f64);
+        }
+        
+        // Final prediction on test data
+        let final_prediction = vqc_forward_pass(&test_features, &theta, qubits, num_layers);
+        let classification = quantum_state_to_species(final_prediction);
+        let confidence = final_prediction.iter().max().unwrap();
+        
+        qc.deallocate(qubits);
+        
+        return {
+            classification: classification,
+            confidence: confidence,
+            loss_history: loss_history
+        };
+    }
+    
+    // Test both quantum ML approaches
+    let test_sample = [0.79, 0.65, 0.58, 0.72, 0.83, 0.49, 0.67, 0.71]; // Unknown species
+    
+    // Run QSVM classification
+    let qsvm_result = qsvm_classify(
+        extended_training_data.map(|d| d.features),
+        extended_training_data.map(|d| d.species),
+        test_sample,
+        3  // feature map depth
+    );
+    
+    // Run VQC classification
+    let vqc_training_pairs = extended_training_data.map(|d| (d.features, d.species));
+    let vqc_result = vqc_classify(
+        vqc_training_pairs,
+        test_sample,
+        4,    // number of layers
+        0.01  // learning rate
+    );
+    
+    // Classical baseline for comparison
+    let classical_result = classical_random_forest_classify(
+        extended_training_data.map(|d| d.features),
+        extended_training_data.map(|d| d.species),
+        test_sample
+    );
+    
+    // Visualize the classification results
+    viz.render_classification_comparison({
+        methods: [
+            {
+                name: "Quantum SVM",
+                prediction: qsvm_result.classification,
+                confidence: qsvm_result.confidence,
+                color: "quantum_blue"
+            },
+            {
+                name: "Variational Quantum Classifier", 
+                prediction: vqc_result.classification,
+                confidence: vqc_result.confidence,
+                color: "quantum_purple"
+            },
+            {
+                name: "Classical Random Forest",
+                prediction: classical_result.classification,
+                confidence: classical_result.confidence,
+                color: "classical_orange"
+            }
+        ],
+        test_features: test_sample,
+        feature_names: [
+            "Branching_Density", "Hyphal_Thickness", "Network_Connectivity", 
+            "Growth_Rate", "Nutrient_Efficiency", "Stress_Response",
+            "Environmental_Adaptation", "Reproductive_Capacity"
+        ],
+        training_data_visualization: true
+    });
+    
+    // Plot VQC training loss
+    viz.plot_training_curve({
+        loss_history: vqc_result.loss_history,
+        title: "VQC Training Loss",
+        xlabel: "Epoch",
+        ylabel: "Cross-entropy Loss",
+        color: "quantum_purple"
+    });
+    
+    // Create confusion matrix
+    let test_predictions = run_full_classification_test(extended_training_data);
+    viz.render_confusion_matrix({
+        predictions: test_predictions,
+        title: "Quantum ML Classification Performance",
+        species_labels: ["Agaricus_bisporus", "Pleurotus_ostreatus", "Lentinula_edodes", "Cantharellus_cibarius"]
+    });
+    
+    // Output detailed results
+    log("=== Quantum Machine Learning Classification Results ===");
+    log(f"Test sample features: {test_sample}");
+    log("");
+    log("Quantum SVM Results:");
+    log(f"  Predicted species: {qsvm_result.classification}");
+    log(f"  Confidence: {qsvm_result.confidence:.3f}");
+    log(f"  Quantum advantage: {qsvm_result.quantum_advantage:.3f}");
+    log("");
+    log("Variational Quantum Classifier Results:");
+    log(f"  Predicted species: {vqc_result.classification}");
+    log(f"  Confidence: {vqc_result.confidence:.3f}");
+    log(f"  Final training loss: {vqc_result.loss_history.last():.4f}");
+    log("");
+    log("Classical Random Forest Results:");
+    log(f"  Predicted species: {classical_result.classification}");
+    log(f"  Confidence: {classical_result.confidence:.3f}");
+    log("");
+    
+    // Performance analysis
+    let accuracy_comparison = compare_classification_accuracy(extended_training_data);
+    log("Classification Accuracy Comparison:");
+    log(f"  Quantum SVM: {accuracy_comparison.qsvm:.3f}");
+    log(f"  VQC: {accuracy_comparison.vqc:.3f}");
+    log(f"  Classical RF: {accuracy_comparison.classical:.3f}");
+    log(f"  Best quantum advantage: {max(accuracy_comparison.qsvm, accuracy_comparison.vqc) - accuracy_comparison.classical:.3f}");
+    
+    return QuantumMLDemo;
+}
+
+// Helper functions for quantum ML operations
+fn vqc_forward_pass(features: [f64], theta: [f64], qubits: [Qubit], layers: u32) -> [f64] {
+    // Encode features
+    for i in 0..features.len() {
+        qc.ry(qubits[i], 2.0 * features[i]);
+    }
+    
+    // Variational layers
+    let mut param_idx = 0;
+    for layer in 0..layers {
+        // Single qubit rotations
+        for i in 0..qubits.len() {
+            qc.ry(qubits[i], theta[param_idx]);
+            param_idx += 1;
+            qc.rz(qubits[i], theta[param_idx]);  
+            param_idx += 1;
+        }
+        
+        // Entangling gates
+        for i in 0..qubits.len()-1 {
+            qc.cz(qubits[i], qubits[i+1]);
+        }
+    }
+    
+    // Measure expectation values
+    return qubits.iter().map(|&qubit| qc.expectation_z(qubit)).collect();
+}
+
+fn species_to_quantum_state(species: String) -> [f64] {
+    match species {
+        "Agaricus_bisporus" => [1.0, 0.0, 0.0, 0.0],
+        "Pleurotus_ostreatus" => [0.0, 1.0, 0.0, 0.0],
+        "Lentinula_edodes" => [0.0, 0.0, 1.0, 0.0],
+        "Cantharellus_cibarius" => [0.0, 0.0, 0.0, 1.0],
+        _ => [0.25, 0.25, 0.25, 0.25] // uniform for unknown
+    }
+}
+
+fn quantum_state_to_species(state: [f64]) -> String {
+    let species = ["Agaricus_bisporus", "Pleurotus_ostreatus", "Lentinula_edodes", "Cantharellus_cibarius"];
+    let max_idx = state.iter()
+        .enumerate()
+        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+        .unwrap().0;
+    species[max_idx].to_string()
+}
+
+fn generate_synthetic_species_data(base_data: [SpeciesData], count: usize) -> [SpeciesData] {
+    // Generate synthetic training data with noise and variations
+    let mut synthetic_data = base_data.clone();
+    
+    for _ in base_data.len()..count {
+        let template = &base_data[random() % base_data.len()];
+        let noisy_features = template.features.iter()
+            .map(|&f| f + random_gaussian(0.0, 0.1).clamp(-0.2, 0.2))
+            .map(|f| f.clamp(0.0, 1.0))
+            .collect();
+        
+        synthetic_data.push(SpeciesData {
+            species: template.species.clone(),
+            features: noisy_features,
+            network_pattern: template.network_pattern.clone(),
+            branching_angle: template.branching_angle + random_gaussian(0.0, 5.0),
+            hyphal_density: template.hyphal_density + random_gaussian(0.0, 0.05)
+        });
+    }
+    
+    return synthetic_data;
+}
+
+// Execute the quantum ML demo
+simulate QuantumMLDemo for realtime;

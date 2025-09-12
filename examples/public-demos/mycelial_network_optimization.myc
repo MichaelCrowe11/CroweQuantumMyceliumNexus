@@ -1,0 +1,298 @@
+// Quantum-Enhanced Mycelial Network Optimization
+// Uses QAOA (Quantum Approximate Optimization Algorithm) for efficient nutrient distribution
+
+import quantum as qc;
+import optimization as opt;
+import mycelial.network as net;
+import visualization as viz;
+
+// Public demo: Optimizing nutrient flow through mycelial networks
+network MycelialOptimizationDemo {
+    // Define network topology
+    let network_size = 20;  // nodes
+    let nutrient_sources = 3;
+    let connection_density = 0.3;
+    
+    // Create random mycelial network
+    let nodes: [net.Node] = [];
+    for i in 0..network_size {
+        let position = [
+            random() * 100.0 - 50.0,  // x: -50 to 50 meters
+            random() * 100.0 - 50.0,  // y: -50 to 50 meters
+            random() * 2.0 - 1.0      // z: -1 to 1 meters (shallow soil)
+        ];
+        
+        let node = net.node(f"hyphal_node_{i}", position);
+        node.properties = {
+            capacity: 10.0 + random() * 40.0,  // nutrient capacity
+            efficiency: 0.5 + random() * 0.5,  // transfer efficiency
+            demand: 1.0 + random() * 9.0       // nutrient demand
+        };
+        nodes.push(node);
+    }
+    
+    // Add nutrient sources (higher capacity, no demand)
+    for i in 0..nutrient_sources {
+        nodes[i].properties.capacity = 100.0;
+        nodes[i].properties.demand = 0.0;
+        nodes[i].properties.is_source = true;
+    }
+    
+    // Create connections based on distance and probability
+    let connections: [net.Connection] = [];
+    for i in 0..network_size {
+        for j in (i+1)..network_size {
+            let distance = euclidean_distance(nodes[i].position, nodes[j].position);
+            let connection_probability = exp(-distance / 20.0) * connection_density;
+            
+            if random() < connection_probability {
+                let connection = net.connection(
+                    nodes[i], 
+                    nodes[j], 
+                    1.0 / (1.0 + distance * 0.1)  // weight inversely proportional to distance
+                );
+                connections.push(connection);
+            }
+        }
+    }
+    
+    // QAOA for nutrient flow optimization
+    quantum fn qaoa_nutrient_optimization(
+        graph: net.Graph, 
+        nutrient_capacity: f64,
+        p_layers: u32
+    ) -> opt.Solution {
+        
+        let n_edges = graph.edges.len();
+        let qubits = qc.allocate(n_edges);
+        
+        // Problem parameters (nutrient flow rates)
+        let flow_rates: [f64] = graph.edges.map(|edge| {
+            let source_capacity = edge.source.properties.capacity;
+            let target_demand = edge.target.properties.demand;
+            let edge_efficiency = edge.weight;
+            
+            min(source_capacity, target_demand) * edge_efficiency
+        });
+        
+        // Initialize uniform superposition
+        for i in 0..n_edges {
+            qc.h(qubits[i]);
+        }
+        
+        // QAOA circuit: alternate between problem and mixer Hamiltonians
+        for layer in 0..p_layers {
+            // Problem Hamiltonian (encode flow optimization)
+            let gamma = PI / 4.0 * (layer as f64 + 1.0) / p_layers as f64;
+            
+            // Maximize flow while respecting capacity constraints
+            for i in 0..n_edges {
+                let flow_benefit = flow_rates[i] * gamma;
+                qc.rz(qubits[i], flow_benefit);
+            }
+            
+            // Capacity constraint penalties
+            for node_idx in 0..graph.nodes.len() {
+                let connected_edges = graph.get_node_edges(node_idx);
+                let capacity = graph.nodes[node_idx].properties.capacity;
+                
+                // Penalize over-capacity flows
+                for edge_pairs in connected_edges.combinations(2) {
+                    let penalty = -gamma * max(0.0, 
+                        (flow_rates[edge_pairs[0]] + flow_rates[edge_pairs[1]]) - capacity
+                    );
+                    qc.cz(qubits[edge_pairs[0]], qubits[edge_pairs[1]]);
+                    qc.rz(qubits[edge_pairs[0]], penalty);
+                    qc.cz(qubits[edge_pairs[0]], qubits[edge_pairs[1]]);
+                }
+            }
+            
+            // Mixer Hamiltonian (exploration)
+            let beta = PI / 4.0 * (p_layers as f64 - layer as f64) / p_layers as f64;
+            
+            for i in 0..n_edges {
+                qc.rx(qubits[i], beta);
+            }
+        }
+        
+        // Measure to get solution
+        let measurements = qc.measure_all(qubits);
+        qc.deallocate(qubits);
+        
+        // Convert quantum measurements to flow solution
+        let flow_solution = measurements_to_flows(measurements, flow_rates, graph);
+        
+        return opt.Solution({
+            flows: flow_solution,
+            total_flow: flow_solution.iter().sum(),
+            efficiency: calculate_efficiency(flow_solution, graph),
+            constraint_violations: count_violations(flow_solution, graph)
+        });
+    }
+    
+    // Classical optimization for comparison (Greedy algorithm)
+    fn classical_greedy_optimization(graph: net.Graph) -> opt.Solution {
+        let mut flow_solution: [f64] = vec![0.0; graph.edges.len()];
+        let mut node_loads: [f64] = vec![0.0; graph.nodes.len()];
+        
+        // Sort edges by efficiency (weight)
+        let sorted_edges: [usize] = (0..graph.edges.len())
+            .sorted_by(|&a, &b| graph.edges[b].weight.partial_cmp(&graph.edges[a].weight).unwrap());
+        
+        // Greedily assign flow to highest efficiency edges
+        for edge_idx in sorted_edges {
+            let edge = &graph.edges[edge_idx];
+            let source_idx = graph.get_node_index(&edge.source);
+            let target_idx = graph.get_node_index(&edge.target);
+            
+            let available_source = graph.nodes[source_idx].properties.capacity - node_loads[source_idx];
+            let available_target = graph.nodes[target_idx].properties.demand;
+            let max_flow = min(available_source, available_target);
+            
+            if max_flow > 0.0 {
+                flow_solution[edge_idx] = max_flow * edge.weight;
+                node_loads[source_idx] += flow_solution[edge_idx];
+            }
+        }
+        
+        return opt.Solution({
+            flows: flow_solution,
+            total_flow: flow_solution.iter().sum(),
+            efficiency: calculate_efficiency(flow_solution, graph),
+            constraint_violations: count_violations(flow_solution, graph)
+        });
+    }
+    
+    // Create graph from nodes and connections
+    let network_graph = net.Graph::from_nodes_connections(nodes, connections);
+    
+    // Run optimizations
+    let quantum_solution = qaoa_nutrient_optimization(network_graph, 100.0, 3);
+    let classical_solution = classical_greedy_optimization(network_graph);
+    
+    // Performance comparison
+    let quantum_improvement = (quantum_solution.total_flow / classical_solution.total_flow - 1.0) * 100.0;
+    
+    // Visualize the optimized networks
+    viz.render_network_comparison({
+        networks: [
+            {
+                graph: network_graph,
+                flows: quantum_solution.flows,
+                title: "QAOA Optimization",
+                color_scheme: "quantum_blue"
+            },
+            {
+                graph: network_graph,
+                flows: classical_solution.flows,
+                title: "Classical Greedy",
+                color_scheme: "classical_orange"
+            }
+        ],
+        flow_visualization: {
+            show_arrows: true,
+            flow_thickness: true,
+            animate_flow: true,
+            color_by_efficiency: true
+        },
+        node_properties: {
+            size_by_capacity: true,
+            color_by_demand: true,
+            show_labels: true
+        },
+        layout: "force_directed_3d",
+        comparison_view: "side_by_side"
+    });
+    
+    // Create efficiency heatmap
+    viz.render_efficiency_heatmap({
+        graph: network_graph,
+        quantum_flows: quantum_solution.flows,
+        classical_flows: classical_solution.flows,
+        title: "Nutrient Distribution Efficiency",
+        colormap: "viridis",
+        show_improvement: true
+    });
+    
+    // Output detailed results
+    log("=== Mycelial Network Optimization Results ===");
+    log(f"Network size: {network_size} nodes, {connections.len()} connections");
+    log(f"Nutrient sources: {nutrient_sources}");
+    log("");
+    log("Quantum QAOA Results:");
+    log(f"  Total flow: {quantum_solution.total_flow:.2f} units");
+    log(f"  Network efficiency: {quantum_solution.efficiency:.3f}");
+    log(f"  Constraint violations: {quantum_solution.constraint_violations}");
+    log("");
+    log("Classical Greedy Results:");
+    log(f"  Total flow: {classical_solution.total_flow:.2f} units");
+    log(f"  Network efficiency: {classical_solution.efficiency:.3f}");
+    log(f"  Constraint violations: {classical_solution.constraint_violations}");
+    log("");
+    log(f"Quantum improvement: {quantum_improvement:.1f}% better flow rate");
+    
+    // Calculate and display network statistics
+    let network_stats = analyze_network_topology(network_graph);
+    log("");
+    log("Network Topology Analysis:");
+    log(f"  Average degree: {network_stats.avg_degree:.2f}");
+    log(f"  Clustering coefficient: {network_stats.clustering:.3f}");
+    log(f"  Network diameter: {network_stats.diameter}");
+    log(f"  Small-world coefficient: {network_stats.small_world:.3f}");
+    
+    return MycelialOptimizationDemo;
+}
+
+// Helper functions
+fn measurements_to_flows(measurements: [u8], rates: [f64], graph: net.Graph) -> [f64] {
+    return measurements.iter()
+        .zip(rates.iter())
+        .map(|(&bit, &rate)| if bit == 1 { rate } else { 0.0 })
+        .collect();
+}
+
+fn calculate_efficiency(flows: [f64], graph: net.Graph) -> f64 {
+    let total_flow = flows.iter().sum();
+    let total_capacity = graph.nodes.iter()
+        .filter(|node| node.properties.is_source.unwrap_or(false))
+        .map(|node| node.properties.capacity)
+        .sum();
+    
+    return total_flow / total_capacity;
+}
+
+fn count_violations(flows: [f64], graph: net.Graph) -> u32 {
+    let mut violations = 0;
+    
+    for node in &graph.nodes {
+        let node_idx = graph.get_node_index(node);
+        let incident_flows: f64 = graph.get_node_edges(node_idx)
+            .iter()
+            .map(|&edge_idx| flows[edge_idx])
+            .sum();
+        
+        if incident_flows > node.properties.capacity {
+            violations += 1;
+        }
+    }
+    
+    return violations;
+}
+
+fn euclidean_distance(pos1: [f64; 3], pos2: [f64; 3]) -> f64 {
+    sqrt((pos1[0] - pos2[0])² + (pos1[1] - pos2[1])² + (pos1[2] - pos2[2])²)
+}
+
+fn analyze_network_topology(graph: net.Graph) -> NetworkStats {
+    // Implementation of network analysis metrics
+    // Returns clustering coefficient, diameter, small-world properties, etc.
+    return NetworkStats {
+        avg_degree: calculate_avg_degree(graph),
+        clustering: calculate_clustering_coefficient(graph),
+        diameter: calculate_network_diameter(graph),
+        small_world: calculate_small_world_coefficient(graph)
+    };
+}
+
+// Execute the optimization demo
+simulate MycelialOptimizationDemo for realtime;

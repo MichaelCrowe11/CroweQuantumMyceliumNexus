@@ -1,36 +1,21 @@
 param(
     [Parameter(Mandatory=$false)]
-    [string]$Environment = "production",
-    
-    [Parameter(Mandatory=$false)]
-    [string]$Namespace = "quantum-mycelium",
-    
-    [Parameter(Mandatory=$false)]
-    [string]$HelmReleaseName = "quantum-mycelium-nexus",
-    
-    [Parameter(Mandatory=$false)]
     [switch]$DryRun,
     
     [Parameter(Mandatory=$false)]
-    [switch]$Upgrade,
+    [switch]$CleanDeploy,
     
     [Parameter(Mandatory=$false)]
-    [switch]$Install,
+    [switch]$SkipTests,
     
     [Parameter(Mandatory=$false)]
-    [switch]$SkipPreCheck,
+    [string]$Domain = "mycelium-ei.io",
     
     [Parameter(Mandatory=$false)]
-    [string]$ValuesFile = "",
+    [switch]$BuildAndPush,
     
     [Parameter(Mandatory=$false)]
-    [hashtable]$SetValues = @{},
-    
-    [Parameter(Mandatory=$false)]
-    [switch]$EnableBackup,
-    
-    [Parameter(Mandatory=$false)]
-    [switch]$EnableMonitoring
+    [string]$Registry = "ghcr.io/michaelcrowe11"
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,65 +27,143 @@ Set-Location $projectRoot
 
 Write-Host "🚀 QuantumMycelium Nexus Production Deployment" -ForegroundColor Cyan
 Write-Host "================================================" -ForegroundColor Cyan
+Write-Host "Domain: $Domain" -ForegroundColor White
+Write-Host "Registry: $Registry" -ForegroundColor White
 
-# Validate prerequisites
-if (!$SkipPreCheck) {
-    Write-Host "🔍 Validating prerequisites..." -ForegroundColor Yellow
-    
-    # Check kubectl
+# Configuration
+$namespace = "quantum-mycelium-prod"
+$releaseName = "qm-production"
+$chartPath = "helm/quantum-mycelium-nexus"
+$valuesFile = "helm/quantum-mycelium-nexus/values-production.yaml"
+
+# Check prerequisites
+Write-Host "`n🔍 Checking prerequisites..." -ForegroundColor Yellow
+
+$prerequisites = @(
+    @{Name="kubectl"; Command="kubectl version --client --short"},
+    @{Name="helm"; Command="helm version --short"},
+    @{Name="docker"; Command="docker version --format '{{.Client.Version}}'"}
+)
+
+foreach ($prereq in $prerequisites) {
     try {
-        $kubectlVersion = kubectl version --client --short 2>$null
-        Write-Host "✅ kubectl: $kubectlVersion" -ForegroundColor Green
+        Invoke-Expression $prereq.Command | Out-Null
+        Write-Host "✅ $($prereq.Name) found" -ForegroundColor Green
     } catch {
-        Write-Host "❌ kubectl not found or not configured" -ForegroundColor Red
+        Write-Host "❌ $($prereq.Name) not found" -ForegroundColor Red
         exit 1
-    }
-    
-    # Check Helm
-    try {
-        $helmVersion = helm version --short 2>$null
-        Write-Host "✅ Helm: $helmVersion" -ForegroundColor Green
-    } catch {
-        Write-Host "❌ Helm not found" -ForegroundColor Red
-        exit 1
-    }
-    
-    # Check cluster connection
-    try {
-        $clusterInfo = kubectl cluster-info --request-timeout=5s 2>$null
-        Write-Host "✅ Kubernetes cluster connection verified" -ForegroundColor Green
-    } catch {
-        Write-Host "❌ Cannot connect to Kubernetes cluster" -ForegroundColor Red
-        exit 1
-    }
-    
-    # Check required permissions
-    try {
-        kubectl auth can-i create deployments --namespace=$Namespace 2>$null
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "❌ Insufficient permissions to create deployments in namespace $Namespace" -ForegroundColor Red
-            exit 1
-        }
-        Write-Host "✅ Kubernetes permissions verified" -ForegroundColor Green
-    } catch {
-        Write-Host "⚠️  Could not verify Kubernetes permissions" -ForegroundColor Yellow
     }
 }
 
-# Create namespace if it doesn't exist
-Write-Host "📁 Setting up namespace..." -ForegroundColor Yellow
+# Check Kubernetes cluster connectivity
 try {
-    kubectl get namespace $Namespace 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "   Creating namespace: $Namespace" -ForegroundColor Gray
-        kubectl apply -f k8s/namespace.yaml
-    } else {
-        Write-Host "   Namespace $Namespace already exists" -ForegroundColor Gray
-    }
+    kubectl cluster-info --request-timeout=10s | Out-Null
+    $clusterInfo = kubectl config current-context
+    Write-Host "✅ Connected to cluster: $clusterInfo" -ForegroundColor Green
 } catch {
-    Write-Host "❌ Failed to create namespace" -ForegroundColor Red
+    Write-Host "❌ Cannot connect to Kubernetes cluster" -ForegroundColor Red
+    Write-Host "   Please ensure kubectl is configured for production cluster" -ForegroundColor Yellow
     exit 1
 }
+
+# Verify environment variables for secrets
+Write-Host "`n🔐 Checking environment variables..." -ForegroundColor Yellow
+
+$requiredEnvVars = @(
+    "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET",
+    "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", 
+    "POSTGRES_PASSWORD", "REDIS_PASSWORD",
+    "GRAFANA_ADMIN_PASSWORD", "GOOGLE_ANALYTICS_ID"
+)
+
+$missingVars = @()
+foreach ($var in $requiredEnvVars) {
+    if (-not [System.Environment]::GetEnvironmentVariable($var)) {
+        $missingVars += $var
+        Write-Host "❌ Missing: $var" -ForegroundColor Red
+    } else {
+        Write-Host "✅ Found: $var" -ForegroundColor Green
+    }
+}
+
+if ($missingVars.Count -gt 0) {
+    Write-Host "`n❌ Missing required environment variables:" -ForegroundColor Red
+    $missingVars | ForEach-Object { Write-Host "   $_" -ForegroundColor Yellow }
+    Write-Host "`nPlease set these variables and try again." -ForegroundColor Yellow
+    exit 1
+}
+
+# Build and push images if requested
+if ($BuildAndPush) {
+    Write-Host "`n🔨 Building and pushing production images..." -ForegroundColor Yellow
+    
+    # Login to GitHub Container Registry
+    Write-Host "   Logging into GitHub Container Registry..." -ForegroundColor Gray
+    $env:GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
+    
+    $images = @(
+        @{Name="mycelium-runtime"; Path="integration/mycelium-ei-integration"; Dockerfile="Dockerfile.runtime"},
+        @{Name="quantum-compute"; Path="quantum-circuits"; Dockerfile="Dockerfile"},
+        @{Name="orchestrator"; Path="integration/mycelium-ei-integration"; Dockerfile="Dockerfile.orchestrator"},
+        @{Name="frontend"; Path="frontend"; Dockerfile="Dockerfile"},
+        @{Name="ml-models"; Path="ml-models"; Dockerfile="Dockerfile"}
+    )
+    
+    foreach ($image in $images) {
+        $tag = "$Registry/$($image.Name):v1.0.0"
+        $latestTag = "$Registry/$($image.Name):latest"
+        
+        Write-Host "   Building $($image.Name)..." -ForegroundColor Gray
+        
+        if (Test-Path $image.Path) {
+            # Build image
+            docker build -t $tag -t $latestTag -f "$($image.Path)/$($image.Dockerfile)" $image.Path
+            
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "❌ Failed to build $($image.Name)" -ForegroundColor Red
+                exit 1
+            }
+            
+            # Push images
+            Write-Host "   Pushing $($image.Name)..." -ForegroundColor Gray
+            docker push $tag
+            docker push $latestTag
+            
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "❌ Failed to push $($image.Name)" -ForegroundColor Red
+                exit 1
+            }
+        } else {
+            Write-Host "⚠️  Path not found for $($image.Name): $($image.Path)" -ForegroundColor Yellow
+        }
+    }
+    
+    Write-Host "✅ All images built and pushed successfully" -ForegroundColor Green
+}
+
+# Clean deployment if requested
+if ($CleanDeploy) {
+    Write-Host "`n🧹 Cleaning existing production deployment..." -ForegroundColor Yellow
+    
+    try {
+        helm uninstall $releaseName --namespace=$namespace 2>$null
+        Write-Host "   Uninstalled existing Helm release" -ForegroundColor Gray
+    } catch {
+        Write-Host "   No existing Helm release found" -ForegroundColor Gray
+    }
+    
+    Write-Host "   ⚠️  Production namespace cleanup skipped for safety" -ForegroundColor Yellow
+    Write-Host "   Manually delete namespace if needed: kubectl delete namespace $namespace" -ForegroundColor Gray
+}
+
+# Create namespace
+Write-Host "`n📁 Setting up production namespace..." -ForegroundColor Yellow
+kubectl create namespace $namespace --dry-run=client -o yaml | kubectl apply -f -
+
+# Label namespace for production
+kubectl label namespace $namespace environment=production --overwrite
+kubectl label namespace $namespace app.kubernetes.io/part-of=quantum-mycelium-nexus --overwrite
+kubectl label namespace $namespace security.policy=strict --overwrite
 
 # Add Helm repositories
 Write-Host "📦 Adding Helm repositories..." -ForegroundColor Yellow

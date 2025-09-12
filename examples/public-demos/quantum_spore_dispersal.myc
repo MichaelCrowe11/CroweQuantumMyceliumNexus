@@ -1,0 +1,199 @@
+// Quantum-Enhanced Spore Dispersal Simulation
+// Demonstrates quantum random walks for modeling fungal spore movement
+
+import quantum as qc;
+import visualization as viz;
+import mycelial.network as net;
+import environmental as env;
+
+// Public demo: Quantum spore dispersal patterns
+network SporeDispersalDemo {
+    // Initialize environmental parameters
+    let wind_speed = 15.0;        // km/h
+    let humidity = 0.75;          // relative humidity
+    let temperature = 22.0;       // Celsius
+    let canopy_density = 0.6;     // forest canopy coverage
+    
+    // Create spore release point
+    node spore_source = net.node("Agaricus_bisporus_mushroom", [0.0, 0.0, 1.2]);
+    spore_source.properties = {
+        spore_count: 1_000_000,
+        release_rate: 50_000,  // spores per minute
+        viability: 0.85
+    };
+    
+    // Quantum random walk for spore trajectory prediction
+    quantum fn quantum_spore_walk(steps: u32, wind_vector: [f64; 3]) -> [net.Position] {
+        let qubits = qc.allocate(6);  // 3 dimensions × 2 qubits each
+        let trajectories: [net.Position] = [];
+        
+        // Initialize quantum superposition for all possible directions
+        for i in 0..6 {
+            qc.h(qubits[i]);
+        }
+        
+        // Apply wind bias using rotation gates
+        let wind_strength = sqrt(wind_vector[0]² + wind_vector[1]² + wind_vector[2]²);
+        let wind_angle_xy = atan2(wind_vector[1], wind_vector[0]);
+        let wind_angle_z = asin(wind_vector[2] / wind_strength);
+        
+        qc.ry(qubits[0], wind_angle_xy);
+        qc.rz(qubits[1], wind_angle_z);
+        
+        // Simulate quantum walk steps
+        for step in 0..steps {
+            // Environmental decoherence effects
+            let decoherence_rate = 0.1 * humidity + 0.05 * (temperature - 20.0) / 20.0;
+            
+            // Apply quantum gates for movement
+            for i in 0..3 {
+                // Hadamard for superposition
+                qc.h(qubits[i * 2]);
+                
+                // Conditional phase for environmental interaction
+                qc.cz(qubits[i * 2], qubits[i * 2 + 1]);
+                
+                // Rotation for drift
+                qc.ry(qubits[i * 2], decoherence_rate);
+            }
+            
+            // Measure current position
+            let measurement = qc.measure_all(qubits);
+            let position = measurement_to_position(measurement, step, wind_vector);
+            trajectories.push(position);
+            
+            // Re-initialize for next step
+            for i in 0..6 {
+                if measurement[i] == 1 {
+                    qc.x(qubits[i]);
+                }
+            }
+        }
+        
+        qc.deallocate(qubits);
+        return trajectories;
+    }
+    
+    // Convert quantum measurements to 3D positions
+    fn measurement_to_position(measurements: [u8], step: u32, wind: [f64; 3]) -> net.Position {
+        let base_step = 0.5; // meters per step
+        
+        // Extract direction from quantum measurements
+        let x_direction = (measurements[0] as f64 - 0.5) * 2.0 + wind[0] * 0.1;
+        let y_direction = (measurements[2] as f64 - 0.5) * 2.0 + wind[1] * 0.1;
+        let z_direction = (measurements[4] as f64 - 0.5) * 2.0 + wind[2] * 0.1;
+        
+        // Apply environmental factors
+        let brownian_motion = [
+            random_gaussian(0.0, 0.1),
+            random_gaussian(0.0, 0.1),
+            random_gaussian(0.0, 0.05)
+        ];
+        
+        return net.Position([
+            step as f64 * base_step * x_direction + brownian_motion[0],
+            step as f64 * base_step * y_direction + brownian_motion[1],
+            step as f64 * base_step * z_direction + brownian_motion[2]
+        ]);
+    }
+    
+    // Classical comparison for benchmarking
+    fn classical_spore_walk(steps: u32, wind_vector: [f64; 3]) -> [net.Position] {
+        let trajectories: [net.Position] = [];
+        let current_pos = net.Position([0.0, 0.0, 0.0]);
+        
+        for step in 0..steps {
+            // Simple random walk with wind bias
+            let random_x = random() - 0.5 + wind_vector[0] * 0.1;
+            let random_y = random() - 0.5 + wind_vector[1] * 0.1;
+            let random_z = random() - 0.5 + wind_vector[2] * 0.1;
+            
+            current_pos = net.Position([
+                current_pos[0] + random_x * 0.5,
+                current_pos[1] + random_y * 0.5,
+                current_pos[2] + random_z * 0.5
+            ]);
+            
+            trajectories.push(current_pos);
+        }
+        
+        return trajectories;
+    }
+    
+    // Run simulation with multiple spore batches
+    let wind_vector = [wind_speed * cos(45°), wind_speed * sin(45°), 2.0];
+    let quantum_results: [[net.Position]] = [];
+    let classical_results: [[net.Position]] = [];
+    
+    // Simulate 100 spore batches
+    for batch in 0..100 {
+        let quantum_trajectory = quantum_spore_walk(50, wind_vector);
+        let classical_trajectory = classical_spore_walk(50, wind_vector);
+        
+        quantum_results.push(quantum_trajectory);
+        classical_results.push(classical_trajectory);
+    }
+    
+    // Calculate dispersal statistics
+    let quantum_dispersal_range = calculate_dispersal_range(quantum_results);
+    let classical_dispersal_range = calculate_dispersal_range(classical_results);
+    
+    // Visualize results with comparison
+    viz.render_3d_comparison({
+        quantum_data: quantum_results,
+        classical_data: classical_results,
+        source_point: spore_source,
+        environment: {
+            wind_vectors: true,
+            canopy_visualization: true,
+            ground_plane: true
+        },
+        style: {
+            quantum_color: "rgba(138, 43, 226, 0.7)",  // Blue-violet
+            classical_color: "rgba(255, 140, 0, 0.7)",  // Dark orange
+            particle_size: 2.0,
+            trail_length: 20,
+            animation_speed: 1.5
+        },
+        title: "Quantum vs Classical Spore Dispersal",
+        legend: {
+            quantum: "Quantum Random Walk",
+            classical: "Classical Random Walk"
+        }
+    });
+    
+    // Output performance metrics
+    log("=== Spore Dispersal Simulation Results ===");
+    log(f"Wind conditions: {wind_speed} km/h at 45°");
+    log(f"Environmental: {temperature}°C, {humidity * 100}% humidity");
+    log(f"Quantum dispersal range: {quantum_dispersal_range.mean:.2f}m ± {quantum_dispersal_range.std:.2f}m");
+    log(f"Classical dispersal range: {classical_dispersal_range.mean:.2f}m ± {classical_dispersal_range.std:.2f}m");
+    log(f"Quantum advantage: {(quantum_dispersal_range.mean / classical_dispersal_range.mean - 1.0) * 100:.1f}% increased range");
+    
+    // Return network for further analysis
+    return SporeDispersalDemo;
+}
+
+// Helper function to calculate dispersal statistics
+fn calculate_dispersal_range(trajectories: [[net.Position]]) -> {mean: f64, std: f64, max: f64} {
+    let distances: [f64] = trajectories.map(|trajectory| {
+        let final_position = trajectory.last();
+        sqrt(final_position[0]² + final_position[1]² + final_position[2]²)
+    });
+    
+    let mean_distance = distances.iter().sum() / distances.len() as f64;
+    let variance = distances.iter()
+        .map(|d| (d - mean_distance)²)
+        .sum() / distances.len() as f64;
+    let std_deviation = sqrt(variance);
+    let max_distance = distances.iter().max().unwrap();
+    
+    return {
+        mean: mean_distance,
+        std: std_deviation,
+        max: max_distance
+    };
+}
+
+// Execute the simulation
+simulate SporeDispersalDemo for realtime;
