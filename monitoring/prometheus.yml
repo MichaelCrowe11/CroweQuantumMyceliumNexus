@@ -1,0 +1,138 @@
+# ========================================
+# PROMETHEUS CONFIGURATION
+# ========================================
+# Metrics collection for CroweQuantumMyceliumNexus
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'nexus-monitor'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - '/etc/prometheus/alerts/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # MyceliumEI Application
+  - job_name: 'mycelium-app'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['mycelium-app:8000']
+        labels:
+          service: 'mycelium'
+          component: 'application'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'mycelium-primary'
+
+  # Quantum Core
+  - job_name: 'quantum-core'
+    metrics_path: '/api/metrics'
+    static_configs:
+      - targets: ['quantum-core:9000']
+        labels:
+          service: 'quantum'
+          component: 'core'
+
+  # Integration Hub
+  - job_name: 'integration-hub'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['integration-hub:8080']
+        labels:
+          service: 'integration'
+          component: 'orchestrator'
+
+  # Weather Service
+  - job_name: 'weather-service'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['crowe-weather-service:8200']
+        labels:
+          service: 'weather'
+          component: 'crowe-sense'
+
+  # PostgreSQL Exporter
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'database'
+          component: 'postgresql'
+
+  # Redis Exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          service: 'cache'
+          component: 'redis'
+
+  # RabbitMQ
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+        labels:
+          service: 'messaging'
+          component: 'rabbitmq'
+
+  # Node Exporter (System Metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'system'
+          component: 'node'
+
+  # Docker Containers
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: 'containers'
+          component: 'docker'
+
+  # Kong API Gateway
+  - job_name: 'kong'
+    static_configs:
+      - targets: ['kong:8001/metrics']
+        labels:
+          service: 'gateway'
+          component: 'kong'
+
+  # Custom Blackbox Monitoring
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://mycelium-app:8000/health
+          - http://quantum-core:9000/api/status
+          - http://integration-hub:8080/api/health
+          - http://crowe-weather-service:8200/healthz
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115

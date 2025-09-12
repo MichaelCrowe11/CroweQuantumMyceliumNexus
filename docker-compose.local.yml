@@ -1,0 +1,141 @@
+version: "3.9"
+
+# ========================================
+# MINIMAL LOCAL DEVELOPMENT STACK
+# ========================================
+# Simplified compose file for local testing
+# Use this for quick development and testing
+
+services:
+  # Core Database
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nexus_admin
+      POSTGRES_PASSWORD: localdev123
+      POSTGRES_DB: nexus_main
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # Using 5433 to avoid conflicts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus_admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass localdev123
+    ports:
+      - "6380:6379"  # Using 6380 to avoid conflicts
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MyceliumEI Application
+  mycelium-app:
+    build:
+      context: ./MyceliumEI
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      FLASK_ENV: development
+      FLASK_DEBUG: "true"
+      DATABASE_URL: postgresql://nexus_admin:localdev123@postgres:5432/nexus_main
+      REDIS_URL: redis://:localdev123@redis:6379/0
+      SECRET_KEY: local-dev-secret-key-change-in-production
+      JWT_SECRET_KEY: local-dev-jwt-secret-change-in-production
+      ENABLE_WEATHER_INTEGRATION: "false"
+      ENABLE_QUANTUM_OPTIMIZATION: "false"
+    volumes:
+      - ./MyceliumEI:/app
+      - mycelium_uploads:/app/uploads
+    ports:
+      - "8100:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Quantum Core (Minimal)
+  quantum-core:
+    build:
+      context: ./CroweQuantumNexusAI
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql://nexus_admin:localdev123@postgres:5432/quantum
+      REDIS_URL: redis://:localdev123@redis:6379/1
+      QUANTUM_SIMULATOR: qiskit
+      QUANTUM_BACKEND: local
+      GPU_ENABLED: "false"
+    volumes:
+      - ./CroweQuantumNexusAI:/app
+      - quantum_models:/app/models
+    ports:
+      - "9000:9000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Integration Hub (Minimal)
+  integration-hub:
+    build:
+      context: ./integration
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql://nexus_admin:localdev123@postgres:5432/integration
+      REDIS_URL: redis://:localdev123@redis:6379/2
+      MYCELIUM_URL: http://mycelium-app:8000
+      QUANTUM_URL: http://quantum-core:9000
+    volumes:
+      - ./integration:/app
+      - integration_data:/app/data
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mycelium-app
+      - quantum-core
+
+  # Simple Web UI for Testing
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_URL: http://localhost:8080
+      REACT_APP_MYCELIUM_URL: http://localhost:8100
+      REACT_APP_QUANTUM_URL: http://localhost:9000
+    ports:
+      - "3003:3000"  # Using 3003 to avoid conflicts
+    depends_on:
+      - integration-hub
+
+volumes:
+  postgres_data:
+  mycelium_uploads:
+  quantum_models:
+  integration_data:
+
+networks:
+  default:
+    name: nexus-local
+    driver: bridge

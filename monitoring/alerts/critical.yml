@@ -1,0 +1,123 @@
+# ========================================
+# CRITICAL ALERT RULES
+# ========================================
+# High-priority alerts requiring immediate attention
+
+groups:
+  - name: critical_alerts
+    interval: 30s
+    rules:
+      # Service Availability
+      - alert: ServiceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Service {{ $labels.service }} is down"
+          description: "{{ $labels.service }} ({{ $labels.instance }}) has been down for more than 2 minutes."
+          runbook_url: "https://docs.crowelogic.com/runbooks/service-down"
+
+      # Database Issues
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database is not responding to health checks."
+          
+      - alert: DatabaseConnectionPoolExhausted
+        expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          team: database
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "Database {{ $labels.datname }} is using {{ $value | humanizePercentage }} of available connections."
+
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+            /
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "High error rate on {{ $labels.service }}"
+          description: "{{ $labels.service }} is experiencing {{ $value | humanizePercentage }} error rate."
+
+      # Memory Issues
+      - alert: OutOfMemory
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.1
+        for: 2m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Host out of memory"
+          description: "Node {{ $labels.instance }} has less than 10% memory available."
+
+      # Disk Space
+      - alert: DiskSpaceCritical
+        expr: node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Critical disk space on {{ $labels.instance }}"
+          description: "Disk {{ $labels.device }} on {{ $labels.instance }} has less than 10% space remaining."
+
+      # Quantum Core Specific
+      - alert: QuantumComputeFailure
+        expr: quantum_compute_failures_total > 10
+        for: 5m
+        labels:
+          severity: critical
+          team: quantum
+        annotations:
+          summary: "Quantum compute failures detected"
+          description: "Quantum core has experienced {{ $value }} compute failures in the last 5 minutes."
+
+      # Weather Service Critical
+      - alert: WeatherDataStale
+        expr: time() - weather_last_update_timestamp > 3600
+        for: 10m
+        labels:
+          severity: critical
+          team: data
+        annotations:
+          summary: "Weather data is stale"
+          description: "Weather data has not been updated for {{ $value | humanizeDuration }}."
+
+      # Integration Pipeline
+      - alert: IntegrationPipelineBlocked
+        expr: integration_queue_size > 1000
+        for: 10m
+        labels:
+          severity: critical
+          team: integration
+        annotations:
+          summary: "Integration pipeline is blocked"
+          description: "Integration queue has {{ $value }} pending items. Pipeline may be blocked."
+
+      # SSL Certificate Expiry
+      - alert: SSLCertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 7
+        for: 1h
+        labels:
+          severity: critical
+          team: security
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}."

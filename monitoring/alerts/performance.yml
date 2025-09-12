@@ -1,0 +1,147 @@
+# ========================================
+# PERFORMANCE ALERT RULES
+# ========================================
+# Performance and optimization alerts
+
+groups:
+  - name: performance_alerts
+    interval: 1m
+    rules:
+      # Response Time
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (service, le)
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High response time on {{ $labels.service }}"
+          description: "95th percentile response time for {{ $labels.service }} is {{ $value }}s (threshold: 2s)."
+
+      # CPU Usage
+      - alert: HighCPUUsage
+        expr: |
+          100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage on {{ $labels.instance }} is {{ $value | humanizePercentage }}."
+
+      # Memory Usage
+      - alert: HighMemoryUsage
+        expr: |
+          (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) 
+          / node_memory_MemTotal_bytes > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage on {{ $labels.instance }} is {{ $value | humanizePercentage }}."
+
+      # Database Performance
+      - alert: SlowQueries
+        expr: pg_stat_statements_mean_time_seconds > 1
+        for: 10m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Average query time is {{ $value }}s for query: {{ $labels.query }}."
+
+      - alert: DatabaseCacheHitRateLow
+        expr: pg_stat_database_blks_hit / (pg_stat_database_blks_hit + pg_stat_database_blks_read) < 0.9
+        for: 15m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "Low database cache hit rate"
+          description: "Database {{ $labels.datname }} cache hit rate is {{ $value | humanizePercentage }}."
+
+      # Redis Performance
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 10m
+        labels:
+          severity: warning
+          team: cache
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis is using {{ $value | humanizePercentage }} of allocated memory."
+
+      - alert: RedisCacheEvictions
+        expr: rate(redis_evicted_keys_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          team: cache
+        annotations:
+          summary: "High Redis cache eviction rate"
+          description: "Redis is evicting {{ $value }} keys per second."
+
+      # Container Performance
+      - alert: ContainerHighCPU
+        expr: |
+          sum(rate(container_cpu_usage_seconds_total[5m])) by (name) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Container {{ $labels.name }} high CPU usage"
+          description: "Container {{ $labels.name }} is using {{ $value | humanizePercentage }} CPU."
+
+      - alert: ContainerHighMemory
+        expr: |
+          container_memory_usage_bytes / container_spec_memory_limit_bytes > 0.9
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Container {{ $labels.name }} high memory usage"
+          description: "Container {{ $labels.name }} is using {{ $value | humanizePercentage }} of memory limit."
+
+      # Quantum Core Performance
+      - alert: QuantumComputeLatency
+        expr: histogram_quantile(0.95, quantum_compute_duration_seconds_bucket) > 30
+        for: 15m
+        labels:
+          severity: warning
+          team: quantum
+        annotations:
+          summary: "Quantum compute latency high"
+          description: "95th percentile quantum compute time is {{ $value }}s."
+
+      - alert: QuantumQueueBacklog
+        expr: quantum_queue_size > 100
+        for: 10m
+        labels:
+          severity: warning
+          team: quantum
+        annotations:
+          summary: "Quantum compute queue backlog"
+          description: "{{ $value }} jobs waiting in quantum compute queue."
+
+      # Integration Performance
+      - alert: IntegrationLatencyHigh
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(integration_processing_duration_seconds_bucket[5m])) by (pipeline, le)
+          ) > 5
+        for: 10m
+        labels:
+          severity: warning
+          team: integration
+        annotations:
+          summary: "Integration pipeline {{ $labels.pipeline }} latency high"
+          description: "95th percentile processing time for {{ $labels.pipeline }} is {{ $value }}s."

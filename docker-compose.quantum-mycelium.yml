@@ -1,0 +1,237 @@
+version: '3.8'
+
+services:
+  # Mycelium-EI Language Runtime
+  mycelium-runtime:
+    build:
+      context: ./integration/mycelium-ei-integration
+      dockerfile: Dockerfile.runtime
+    container_name: mycelium-runtime
+    environment:
+      - RUST_LOG=info
+      - MYCELIUM_THREADS=${MYCELIUM_THREADS:-4}
+      - QUANTUM_BRIDGE_ENABLED=true
+      - ORCHESTRATOR_MODE=hybrid
+    volumes:
+      - ./mycelium-programs:/app/programs
+      - ./data/mycelium:/app/data
+    ports:
+      - "8200:8200"
+    networks:
+      - quantum-mycelium-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8200/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Quantum Computing Service
+  quantum-compute:
+    build:
+      context: ./integration/quantum-core
+      dockerfile: Dockerfile
+    container_name: quantum-compute
+    environment:
+      - QUANTUM_BACKEND=${QUANTUM_BACKEND:-simulator}
+      - QUBITS_MAX=20
+      - ENABLE_NOISE_MODEL=${ENABLE_NOISE:-false}
+      - OPTIMIZATION_LEVEL=3
+    volumes:
+      - ./quantum-circuits:/app/circuits
+      - ./data/quantum:/app/data
+    ports:
+      - "9000:9000"
+    networks:
+      - quantum-mycelium-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Integration Orchestrator
+  integration-orchestrator:
+    build:
+      context: ./integration/mycelium-ei-integration
+      dockerfile: Dockerfile.orchestrator
+    container_name: integration-orchestrator
+    environment:
+      - ORCHESTRATOR_PORT=8300
+      - MYCELIUM_RUNTIME_URL=http://mycelium-runtime:8200
+      - QUANTUM_COMPUTE_URL=http://quantum-compute:9000
+      - PIPELINE_BATCH_SIZE=${PIPELINE_BATCH_SIZE:-100}
+      - ENABLE_METRICS=true
+      - LOG_LEVEL=info
+    depends_on:
+      - mycelium-runtime
+      - quantum-compute
+      - redis
+      - rabbitmq
+    volumes:
+      - ./config/orchestrator:/app/config
+      - ./data/orchestrator:/app/data
+    ports:
+      - "8300:8300"
+    networks:
+      - quantum-mycelium-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8300/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Data Pipeline Service
+  data-pipeline:
+    build:
+      context: ./integration/data-pipeline
+      dockerfile: Dockerfile
+    container_name: data-pipeline
+    environment:
+      - PIPELINE_MODE=streaming
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - TRANSFORM_WORKERS=4
+      - BUFFER_SIZE=10000
+    depends_on:
+      - kafka
+      - redis
+    volumes:
+      - ./config/pipeline:/app/config
+      - ./data/pipeline:/app/data
+    networks:
+      - quantum-mycelium-net
+
+  # Message Queue
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-admin}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-quantum123}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - quantum-mycelium-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Cache Layer
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - quantum-mycelium-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Event Streaming
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - quantum-mycelium-net
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+    networks:
+      - quantum-mycelium-net
+
+  # Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - quantum-mycelium-net
+
+  # Monitoring - Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-quantum123}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+    volumes:
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - quantum-mycelium-net
+
+  # Distributed Tracing - Jaeger
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+      - "9411:9411"
+    networks:
+      - quantum-mycelium-net
+
+networks:
+  quantum-mycelium-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  rabbitmq-data:
+  redis-data:
+  kafka-data:
+  zookeeper-data:
+  prometheus-data:
+  grafana-data:
