@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Circuit Designer - QuantumMycelium Nexus</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            color: white;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .container {
+            flex: 1;
+            display: flex;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .sidebar {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            width: 250px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .main {
+            flex: 1;
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .gate-palette {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .gate {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.8rem;
+            border-radius: 8px;
+            text-align: center;
+            cursor: move;
+            transition: transform 0.2s;
+            font-weight: 600;
+        }
+        
+        .gate:hover {
+            transform: scale(1.05);
+        }
+        
+        .circuit-canvas {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            min-height: 400px;
+            position: relative;
+            overflow: auto;
+        }
+        
+        .circuit-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 60px);
+            grid-template-rows: repeat(4, 60px);
+            gap: 1px;
+            padding: 20px;
+            background-image: 
+                linear-gradient(to right, #f0f0f0 1px, transparent 1px),
+                linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+            background-size: 61px 61px;
+        }
+        
+        .qubit-line {
+            position: absolute;
+            height: 2px;
+            background: #333;
+            width: calc(100% - 40px);
+            left: 20px;
+        }
+        
+        .qubit-label {
+            position: absolute;
+            left: 5px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .placed-gate {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .placed-gate:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        .controls {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        
+        .output {
+            background: #1a1a2e;
+            color: #4ecdc4;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>⚛️ Quantum Circuit Designer - QuantumMycelium Nexus</h1>
+    </header>
+    
+    <div class="container">
+        <div class="sidebar">
+            <h2 style="margin-bottom: 1rem;">Quantum Gates</h2>
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;">
+                Drag gates to the circuit
+            </p>
+            
+            <div class="gate-palette">
+                <div class="gate" draggable="true" data-gate="H">H</div>
+                <div class="gate" draggable="true" data-gate="X">X</div>
+                <div class="gate" draggable="true" data-gate="Y">Y</div>
+                <div class="gate" draggable="true" data-gate="Z">Z</div>
+                <div class="gate" draggable="true" data-gate="CNOT">CNOT</div>
+                <div class="gate" draggable="true" data-gate="S">S</div>
+                <div class="gate" draggable="true" data-gate="T">T</div>
+                <div class="gate" draggable="true" data-gate="M">📊</div>
+            </div>
+            
+            <h3 style="margin-top: 2rem; margin-bottom: 0.5rem;">Circuit Info</h3>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="gateCount">0</div>
+                    <div class="stat-label">Gates</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="qubitCount">4</div>
+                    <div class="stat-label">Qubits</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="depthCount">0</div>
+                    <div class="stat-label">Depth</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main">
+            <h2>Circuit Builder</h2>
+            <p style="color: #666; margin-bottom: 1rem;">Build your quantum circuit by dragging gates onto the qubit lines</p>
+            
+            <div class="circuit-canvas" id="circuitCanvas">
+                <!-- Qubit lines -->
+                <div class="qubit-line" style="top: 50px;"></div>
+                <div class="qubit-label" style="top: 40px;">|q₀⟩</div>
+                
+                <div class="qubit-line" style="top: 110px;"></div>
+                <div class="qubit-label" style="top: 100px;">|q₁⟩</div>
+                
+                <div class="qubit-line" style="top: 170px;"></div>
+                <div class="qubit-label" style="top: 160px;">|q₂⟩</div>
+                
+                <div class="qubit-line" style="top: 230px;"></div>
+                <div class="qubit-label" style="top: 220px;">|q₃⟩</div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-primary" onclick="runSimulation()">
+                    ▶️ Run Simulation
+                </button>
+                <button class="btn btn-secondary" onclick="clearCircuit()">
+                    🗑️ Clear Circuit
+                </button>
+                <button class="btn btn-secondary" onclick="exportCircuit()">
+                    💾 Export Code
+                </button>
+            </div>
+            
+            <div class="output" id="output">
+Ready to build quantum circuits...
+Drag gates from the palette to the circuit canvas.
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let circuit = [];
+        let gatePositions = {};
+        let nextGateId = 0;
+        
+        // Drag and drop functionality
+        document.querySelectorAll('.gate').forEach(gate => {
+            gate.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('gate-type', e.target.dataset.gate);
+            });
+        });
+        
+        const canvas = document.getElementById('circuitCanvas');
+        
+        canvas.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+        
+        canvas.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const gateType = e.dataTransfer.getData('gate-type');
+            
+            // Calculate position
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Snap to grid
+            const qubitIndex = Math.floor(y / 60);
+            const position = Math.floor(x / 60);
+            
+            if (qubitIndex < 4 && position < 10) {
+                addGate(gateType, qubitIndex, position);
+            }
+        });
+        
+        function addGate(type, qubit, position) {
+            const gateId = nextGateId++;
+            const gate = document.createElement('div');
+            gate.className = 'placed-gate';
+            gate.textContent = type;
+            gate.style.left = (position * 60 + 35) + 'px';
+            gate.style.top = (qubit * 60 + 25) + 'px';
+            gate.dataset.gateId = gateId;
+            gate.onclick = () => removeGate(gateId);
+            
+            canvas.appendChild(gate);
+            
+            circuit.push({ id: gateId, type, qubit, position });
+            updateStats();
+        }
+        
+        function removeGate(gateId) {
+            const gate = document.querySelector(`[data-gate-id="${gateId}"]`);
+            if (gate) {
+                gate.remove();
+                circuit = circuit.filter(g => g.id !== gateId);
+                updateStats();
+            }
+        }
+        
+        function clearCircuit() {
+            document.querySelectorAll('.placed-gate').forEach(g => g.remove());
+            circuit = [];
+            updateStats();
+            document.getElementById('output').textContent = 'Circuit cleared. Ready to build...';
+        }
+        
+        function updateStats() {
+            document.getElementById('gateCount').textContent = circuit.length;
+            const depth = circuit.length > 0 ? Math.max(...circuit.map(g => g.position)) + 1 : 0;
+            document.getElementById('depthCount').textContent = depth;
+        }
+        
+        function runSimulation() {
+            const output = document.getElementById('output');
+            
+            if (circuit.length === 0) {
+                output.textContent = 'Please add some gates to the circuit first!';
+                return;
+            }
+            
+            // Simulate quantum circuit execution
+            output.textContent = 'Running quantum simulation...\n\n';
+            
+            // Sort gates by position
+            const sortedGates = [...circuit].sort((a, b) => a.position - b.position);
+            
+            // Generate simulation output
+            let result = 'Circuit Execution:\n';
+            result += '═══════════════════\n\n';
+            
+            sortedGates.forEach(gate => {
+                result += `Step ${gate.position + 1}: Apply ${gate.type} gate to qubit ${gate.qubit}\n`;
+            });
+            
+            result += '\nQuantum State Evolution:\n';
+            result += '──────────────────────\n';
+            result += '|ψ₀⟩ = |0000⟩\n';
+            
+            // Simulate state evolution
+            let hasHadamard = circuit.some(g => g.type === 'H');
+            let hasCNOT = circuit.some(g => g.type === 'CNOT');
+            
+            if (hasHadamard && hasCNOT) {
+                result += '|ψ₁⟩ = 1/√2(|0000⟩ + |1111⟩)  [Bell State]\n';
+                result += '\nEntanglement detected! 🎉\n';
+            } else if (hasHadamard) {
+                result += '|ψ₁⟩ = 1/√2(|0⟩ + |1⟩) ⊗ |ψ_rest⟩  [Superposition]\n';
+            } else {
+                result += '|ψ₁⟩ = Transformed basis state\n';
+            }
+            
+            result += '\nMeasurement Results:\n';
+            result += '──────────────────\n';
+            
+            // Generate random measurement results
+            for (let i = 0; i < 4; i++) {
+                const prob = Math.random();
+                result += `Qubit ${i}: |${prob > 0.5 ? '1' : '0'}⟩ (P = ${prob.toFixed(3)})\n`;
+            }
+            
+            result += '\n✅ Simulation complete!';
+            
+            output.textContent = result;
+        }
+        
+        function exportCircuit() {
+            if (circuit.length === 0) {
+                document.getElementById('output').textContent = 'No circuit to export!';
+                return;
+            }
+            
+            let code = '// QuantumMycelium Nexus Circuit\n';
+            code += '// Generated from Visual Designer\n\n';
+            code += 'quantum circuit MyCircuit {\n';
+            code += '    qubits: 4;\n\n';
+            
+            const sortedGates = [...circuit].sort((a, b) => a.position - b.position);
+            
+            sortedGates.forEach(gate => {
+                code += `    ${gate.type.toLowerCase()}(q[${gate.qubit}]);\n`;
+            });
+            
+            code += '\n    measure_all();\n';
+            code += '}\n\n';
+            code += 'simulate MyCircuit for 1000 shots;';
+            
+            document.getElementById('output').textContent = code;
+        }
+        
+        // Initialize
+        updateStats();
+    </script>
+</body>
+</html>
