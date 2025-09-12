@@ -1,0 +1,443 @@
+# Default values for quantum-mycelium-nexus
+# This is a YAML-formatted file.
+
+# Global settings
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+  
+# Namespace configuration
+namespace:
+  create: true
+  name: quantum-mycelium
+  
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "quantum-mycelium-sa"
+
+# Security settings
+podSecurityPolicy:
+  enabled: true
+networkPolicy:
+  enabled: true
+  
+# Mycelium Runtime configuration
+myceliumRuntime:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: quantum-mycelium/mycelium-runtime
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8200
+    targetPort: 8200
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9100"
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+  config:
+    threads: 4
+    heapSize: "2GB"
+    stackSize: "8MB"
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 20Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+    
+# Quantum Compute configuration
+quantumCompute:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: quantum-mycelium/quantum-compute
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 9000
+    targetPort: 9000
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9100"
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 4Gi
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+  config:
+    backend: "simulator"
+    maxQubits: 20
+    optimizationLevel: 3
+    enableNoiseModel: false
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 50Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+
+# Integration Orchestrator configuration
+orchestrator:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: quantum-mycelium/orchestrator
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8300
+    targetPort: 8300
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9100"
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  config:
+    pipelineBatchSize: 100
+    pipelineBufferSize: 1000
+    pipelineTimeoutMs: 5000
+    retryAttempts: 3
+    maxConcurrentComputations: 50
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 10Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+
+# Frontend configuration
+frontend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: quantum-mycelium/frontend
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+  config:
+    apiBaseUrl: "http://api-gateway-service:8300"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+
+# ML Models service
+mlModels:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: quantum-mycelium/ml-models
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8400
+    targetPort: 8400
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 100Gi
+  config:
+    modelPath: "/app/models"
+    enableGPU: false
+    batchSize: 32
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: quantum-mycelium.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service:
+            name: frontend-service
+            port: 3000
+        - path: /api
+          pathType: Prefix
+          service:
+            name: api-gateway-service
+            port: 8300
+  tls:
+    - secretName: quantum-mycelium-tls
+      hosts:
+        - quantum-mycelium.example.com
+
+# Database configuration (PostgreSQL)
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: ""
+    database: "quantum_mycelium"
+    username: "qm_user"
+    password: ""
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"
+    retention: 30
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: ""
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+
+# RabbitMQ configuration
+rabbitmq:
+  enabled: true
+  auth:
+    username: "qm_user"
+    password: ""
+  persistence:
+    enabled: true
+    size: 8Gi
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# Monitoring configuration
+monitoring:
+  prometheus:
+    enabled: true
+    server:
+      persistence:
+        enabled: true
+        size: 50Gi
+      resources:
+        requests:
+          cpu: 500m
+          memory: 1Gi
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+    alertmanager:
+      enabled: true
+      persistence:
+        enabled: true
+        size: 2Gi
+  grafana:
+    enabled: true
+    admin:
+      user: admin
+      password: ""
+    persistence:
+      enabled: true
+      size: 1Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+      scrapeTimeout: 10s
+
+# Distributed tracing
+tracing:
+  jaeger:
+    enabled: true
+    collector:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 200m
+          memory: 512Mi
+    query:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 200m
+          memory: 512Mi
+
+# Security and RBAC
+rbac:
+  create: true
+  rules:
+    - apiGroups: [""]
+      resources: ["pods", "services", "configmaps", "secrets"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: ["apps"]
+      resources: ["deployments", "replicasets"]
+      verbs: ["get", "list", "watch"]
+
+# Backup and disaster recovery
+backup:
+  enabled: true
+  schedule: "0 1 * * *"
+  retention:
+    days: 30
+    weeks: 12
+    months: 12
+    years: 7
+  storage:
+    type: "s3"
+    s3:
+      bucket: "quantum-mycelium-backups"
+      region: "us-west-2"
+      accessKeyId: ""
+      secretAccessKey: ""
+
+# Resource quotas and limits
+resourceQuota:
+  enabled: true
+  hard:
+    requests.cpu: "10"
+    requests.memory: "20Gi"
+    limits.cpu: "20"
+    limits.memory: "40Gi"
+    persistentvolumeclaims: "20"
+    
+# Pod disruption budgets
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Network policies
+networkPolicy:
+  enabled: true
+  policies:
+    - name: deny-all
+      podSelector: {}
+      policyTypes:
+        - Ingress
+        - Egress
+    - name: allow-quantum-mycelium
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/part-of: quantum-mycelium-nexus
+      ingress:
+        - from:
+            - podSelector:
+                matchLabels:
+                  app.kubernetes.io/part-of: quantum-mycelium-nexus
+
+# Custom configuration
+config:
+  # Global application settings
+  global:
+    environment: "production"
+    logLevel: "info"
+    enableTLS: true
+    corsAllowedOrigins: "*"
+    
+  # Quantum computing settings
+  quantum:
+    backend: "simulator"
+    maxQubits: 20
+    timeoutSeconds: 30
+    enableNoiseModel: false
+    optimizationLevel: 3
+    
+  # Security settings
+  security:
+    jwtSecret: ""
+    encryptionKey: ""
+    apiRateLimit: 1000
+    
+  # Performance settings
+  performance:
+    maxConcurrentComputations: 50
+    maxComputationTimeSeconds: 1800
+    maxMemoryPerComputationGB: 4
+    
+  # Data retention (EPA compliance)
+  dataRetention:
+    enabled: true
+    retentionDays: 2555  # 7 years
+    archiveAfterDays: 365
+    compressionEnabled: true

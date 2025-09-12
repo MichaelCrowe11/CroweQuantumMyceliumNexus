@@ -1,0 +1,581 @@
+openapi: 3.0.3
+info:
+  title: QuantumMycelium Nexus API
+  description: REST API for quantum-enhanced mycelial intelligence platform
+  version: 1.0.0
+  contact:
+    name: Crowe Logic Support
+    email: support@crowelogic.com
+  license:
+    name: Proprietary
+    
+servers:
+  - url: http://localhost:8300/api/v1
+    description: Local development
+  - url: https://api.quantummycelium.io/v1
+    description: Production
+
+tags:
+  - name: Computation
+    description: Hybrid quantum-classical computations
+  - name: Networks
+    description: Mycelial network operations
+  - name: Quantum
+    description: Quantum circuit operations
+  - name: Monitoring
+    description: System monitoring and metrics
+
+paths:
+  /compute/hybrid:
+    post:
+      tags: [Computation]
+      summary: Execute hybrid quantum-mycelium computation
+      operationId: executeHybrid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HybridComputationRequest'
+      responses:
+        '200':
+          description: Computation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComputationResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+          
+  /compute/status/{computationId}:
+    get:
+      tags: [Computation]
+      summary: Get computation status
+      operationId: getComputationStatus
+      parameters:
+        - name: computationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Computation status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComputationStatus'
+                
+  /networks:
+    get:
+      tags: [Networks]
+      summary: List mycelial networks
+      operationId: listNetworks
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of networks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  networks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MycelialNetwork'
+                  total:
+                    type: integer
+                    
+    post:
+      tags: [Networks]
+      summary: Create new mycelial network
+      operationId: createNetwork
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNetworkRequest'
+      responses:
+        '201':
+          description: Network created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MycelialNetwork'
+                
+  /networks/{networkId}/simulate:
+    post:
+      tags: [Networks]
+      summary: Simulate network growth
+      operationId: simulateGrowth
+      parameters:
+        - name: networkId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GrowthSimulationRequest'
+      responses:
+        '200':
+          description: Simulation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GrowthSimulationResult'
+                
+  /quantum/circuits:
+    get:
+      tags: [Quantum]
+      summary: List available quantum circuits
+      operationId: listCircuits
+      responses:
+        '200':
+          description: List of circuits
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuantumCircuit'
+                  
+    post:
+      tags: [Quantum]
+      summary: Create quantum circuit
+      operationId: createCircuit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuantumCircuit'
+      responses:
+        '201':
+          description: Circuit created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuantumCircuit'
+                
+  /quantum/execute:
+    post:
+      tags: [Quantum]
+      summary: Execute quantum circuit
+      operationId: executeCircuit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CircuitExecutionRequest'
+      responses:
+        '200':
+          description: Execution result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuantumResult'
+                
+  /metrics:
+    get:
+      tags: [Monitoring]
+      summary: Get system metrics
+      operationId: getMetrics
+      parameters:
+        - name: metric_type
+          in: query
+          schema:
+            type: string
+            enum: [cpu, memory, quantum_fidelity, network_efficiency]
+        - name: time_range
+          in: query
+          schema:
+            type: string
+            enum: [1h, 6h, 24h, 7d, 30d]
+      responses:
+        '200':
+          description: System metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+                
+  /health:
+    get:
+      tags: [Monitoring]
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: System healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                  services:
+                    type: object
+                    additionalProperties:
+                      type: string
+
+components:
+  schemas:
+    HybridComputationRequest:
+      type: object
+      required:
+        - mycelium_code
+      properties:
+        mycelium_code:
+          type: string
+          description: Mycelium-EI program code
+        quantum_circuit:
+          $ref: '#/components/schemas/QuantumCircuit'
+        parameters:
+          type: object
+          additionalProperties: true
+        optimization_level:
+          type: string
+          enum: [none, basic, aggressive, quantum]
+          default: basic
+          
+    ComputationResult:
+      type: object
+      properties:
+        computation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        mycelium_output:
+          type: object
+        quantum_output:
+          $ref: '#/components/schemas/QuantumResult'
+        metrics:
+          $ref: '#/components/schemas/HybridMetrics'
+        execution_time_ms:
+          type: integer
+          
+    ComputationStatus:
+      type: object
+      properties:
+        computation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        progress:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+        message:
+          type: string
+          
+    MycelialNetwork:
+      type: object
+      properties:
+        network_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/MycelialNode'
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/MycelialEdge'
+        metadata:
+          type: object
+          properties:
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            species:
+              type: string
+            substrate:
+              type: string
+              
+    MycelialNode:
+      type: object
+      properties:
+        node_id:
+          type: string
+        position:
+          type: array
+          items:
+            type: number
+          minItems: 3
+          maxItems: 3
+        nutrient_level:
+          type: number
+        growth_rate:
+          type: number
+        age:
+          type: integer
+          
+    MycelialEdge:
+      type: object
+      properties:
+        source:
+          type: string
+        target:
+          type: string
+        flow_rate:
+          type: number
+        thickness:
+          type: number
+        resistance:
+          type: number
+          
+    CreateNetworkRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        initial_nodes:
+          type: integer
+          default: 1
+        species:
+          type: string
+        substrate:
+          type: string
+        environmental_factors:
+          $ref: '#/components/schemas/EnvironmentalFactors'
+          
+    EnvironmentalFactors:
+      type: object
+      properties:
+        temperature:
+          type: number
+        humidity:
+          type: number
+        ph_level:
+          type: number
+        oxygen_concentration:
+          type: number
+        co2_concentration:
+          type: number
+        light_intensity:
+          type: number
+          
+    GrowthSimulationRequest:
+      type: object
+      properties:
+        time_steps:
+          type: integer
+          default: 100
+        environmental_factors:
+          $ref: '#/components/schemas/EnvironmentalFactors'
+        use_quantum:
+          type: boolean
+          default: true
+          
+    GrowthSimulationResult:
+      type: object
+      properties:
+        final_network:
+          $ref: '#/components/schemas/MycelialNetwork'
+        growth_trajectory:
+          type: array
+          items:
+            type: object
+            properties:
+              time_step:
+                type: integer
+              biomass:
+                type: number
+              network_size:
+                type: integer
+        predictions:
+          type: object
+          properties:
+            growth_rate:
+              type: number
+            optimal_direction:
+              type: array
+              items:
+                type: number
+            branching_probability:
+              type: number
+              
+    QuantumCircuit:
+      type: object
+      required:
+        - qubits
+        - gates
+      properties:
+        circuit_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        qubits:
+          type: integer
+          minimum: 1
+          maximum: 20
+        gates:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuantumGate'
+        measurements:
+          type: array
+          items:
+            type: integer
+            
+    QuantumGate:
+      type: object
+      required:
+        - type
+        - qubits
+      properties:
+        type:
+          type: string
+          enum: [H, X, Y, Z, CNOT, Toffoli, Phase, Custom]
+        qubits:
+          type: array
+          items:
+            type: integer
+        parameters:
+          type: array
+          items:
+            type: number
+            
+    CircuitExecutionRequest:
+      type: object
+      required:
+        - circuit
+      properties:
+        circuit:
+          $ref: '#/components/schemas/QuantumCircuit'
+        shots:
+          type: integer
+          default: 1024
+        backend:
+          type: string
+          enum: [simulator, hardware]
+          default: simulator
+          
+    QuantumResult:
+      type: object
+      properties:
+        state_vector:
+          type: array
+          items:
+            type: number
+        measurements:
+          type: array
+          items:
+            type: integer
+        probabilities:
+          type: array
+          items:
+            type: number
+        entanglement_entropy:
+          type: number
+          
+    HybridMetrics:
+      type: object
+      properties:
+        quantum_speedup:
+          type: number
+        accuracy_improvement:
+          type: number
+        resource_utilization:
+          type: object
+          properties:
+            cpu_usage:
+              type: number
+            memory_usage:
+              type: number
+            quantum_coherence_time:
+              type: number
+            network_latency_ms:
+              type: number
+              
+    MetricsResponse:
+      type: object
+      properties:
+        metrics:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              value:
+                type: number
+              metric_type:
+                type: string
+                
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              details:
+                type: object
+                
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              trace_id:
+                type: string
+                
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      
+security:
+  - ApiKey: []
+  - BearerAuth: []

@@ -1,0 +1,230 @@
+// Quantum-Enhanced Nutrient Flow Optimization
+// Optimizes nutrient distribution across mycelial network using quantum algorithms
+
+import quantum.algorithms as qa
+import mycelium.metabolism as met
+import mycelium.transport as transport
+
+// Nutrient flow state representation
+struct NutrientFlow {
+    source_nodes: Array<NodeId>,
+    sink_nodes: Array<NodeId>,
+    flow_rates: Matrix<f64>,
+    nutrient_types: Array<NutrientType>
+}
+
+enum NutrientType {
+    Nitrogen,
+    Phosphorus,
+    Potassium,
+    Carbon,
+    Minerals(String)
+}
+
+// Quantum optimization of nutrient distribution
+quantum fn optimize_nutrient_flow(
+    network: transport.Network,
+    nutrients: Array<NutrientType>,
+    demands: Map<NodeId, f64>
+) -> NutrientFlow {
+    
+    // Prepare quantum state for flow optimization
+    let n_nodes = network.node_count();
+    let qubits = qc.allocate(n_nodes.next_power_of_two().log2());
+    
+    // Encode network topology and nutrient availability
+    let adjacency = network.to_adjacency_matrix();
+    qc.amplitude_encode(qubits, adjacency.flatten());
+    
+    // Quantum Approximate Optimization Algorithm (QAOA)
+    let cost_hamiltonian = create_flow_hamiltonian(network, demands);
+    let mixer_hamiltonian = qa.transverse_field_mixer(qubits);
+    
+    let (beta, gamma) = qa.qaoa_optimize(
+        cost_h: cost_hamiltonian,
+        mixer_h: mixer_hamiltonian,
+        p: 5,  // QAOA depth
+        optimizer: "L-BFGS-B"
+    );
+    
+    // Apply QAOA circuit
+    for i in 0..5 {
+        qc.apply_hamiltonian(cost_hamiltonian, gamma[i]);
+        qc.apply_hamiltonian(mixer_hamiltonian, beta[i]);
+    }
+    
+    // Measure and extract flow configuration
+    let measurements = qc.measure_all(qubits);
+    return decode_flow_configuration(measurements, network, nutrients);
+}
+
+// Metabolic pathway simulation with quantum speedup
+quantum fn simulate_metabolic_pathways(
+    initial_concentrations: Map<Metabolite, f64>,
+    enzymes: Array<Enzyme>,
+    time_steps: u32
+) -> Array<MetabolicState> {
+    
+    // Quantum simulation of chemical reactions
+    let metabolites = initial_concentrations.keys();
+    let n_metabolites = metabolites.len();
+    let qubits = qc.allocate(n_metabolites * 2); // amplitude and phase
+    
+    // Initialize quantum state with metabolite concentrations
+    let init_state = concentrations_to_quantum_state(initial_concentrations);
+    qc.initialize(qubits, init_state);
+    
+    let results = Array::new();
+    
+    for t in 0..time_steps {
+        // Apply enzyme-catalyzed reaction operators
+        for enzyme in enzymes {
+            let reaction_operator = create_reaction_operator(enzyme);
+            qc.controlled_unitary(
+                control: qubits[enzyme.substrate_index],
+                target: qubits[enzyme.product_index],
+                unitary: reaction_operator
+            );
+        }
+        
+        // Periodic measurements for trajectory
+        if t % 10 == 0 {
+            let snapshot = qc.weak_measurement(qubits);
+            results.push(decode_metabolic_state(snapshot));
+        }
+        
+        // Environmental coupling (temperature, pH effects)
+        apply_environmental_coupling(qubits, t);
+    }
+    
+    return results;
+}
+
+// Resource allocation using quantum annealing
+quantum fn allocate_resources(
+    available_resources: ResourcePool,
+    growth_fronts: Array<GrowthFront>,
+    constraints: AllocationConstraints
+) -> ResourceAllocation {
+    
+    // Formulate as Quadratic Unconstrained Binary Optimization (QUBO)
+    let qubo_matrix = build_qubo_matrix(
+        resources: available_resources,
+        demands: growth_fronts.map(|f| f.resource_demand()),
+        constraints: constraints
+    );
+    
+    // Quantum annealing
+    let annealer = qa.QuantumAnnealer::new();
+    annealer.set_schedule(
+        initial_temp: 10.0,
+        final_temp: 0.01,
+        steps: 1000
+    );
+    
+    let solution = annealer.solve(qubo_matrix);
+    
+    // Extract allocation from binary solution
+    return decode_allocation(solution, available_resources, growth_fronts);
+}
+
+// Hybrid classical-quantum enzyme optimization
+hybrid fn optimize_enzyme_production(
+    current_state: met.MetabolicState,
+    target_products: Array<Metabolite>,
+    energy_budget: f64
+) -> EnzymeProfile {
+    
+    // Classical: Identify metabolic bottlenecks
+    let pathway_analysis = met.analyze_pathways(current_state);
+    let bottlenecks = pathway_analysis.find_rate_limiting_steps();
+    
+    // Quantum: Optimize enzyme expression levels
+    quantum {
+        let enzymes = pathway_analysis.get_enzymes();
+        let n_enzymes = enzymes.len();
+        let qubits = qc.allocate(n_enzymes);
+        
+        // Variational quantum algorithm for enzyme optimization
+        let cost_fn = |params| {
+            calculate_production_cost(params, target_products, energy_budget)
+        };
+        
+        let optimizer = qa.VQE::new(
+            ansatz: qa.RealAmplitudes(qubits, reps: 3),
+            optimizer: "SPSA",
+            initial_point: current_enzyme_levels()
+        );
+        
+        let optimal_params = optimizer.minimize(cost_fn);
+        
+        return EnzymeProfile {
+            expression_levels: optimal_params,
+            enzymes: enzymes,
+            predicted_yield: calculate_yield(optimal_params, target_products)
+        };
+    }
+}
+
+// Main nutrient optimization pipeline
+fn main() {
+    // Initialize network and metabolic model
+    let network = transport.Network::from_scan("mycelium_scan.dat");
+    let metabolic_model = met.Model::load("fungal_metabolism.model");
+    
+    // Define optimization targets
+    let growth_targets = GrowthTargets {
+        biomass_rate: 5.0,  // g/day
+        network_expansion: 10.0,  // cm²/day
+        spore_production: 1000.0  // spores/day
+    };
+    
+    // Continuous optimization loop
+    loop {
+        // Measure current state
+        let current_nutrients = measure_nutrient_levels();
+        let current_metabolism = metabolic_model.get_state();
+        
+        // Quantum optimization phase
+        let optimal_flow = optimize_nutrient_flow(
+            network,
+            current_nutrients.types(),
+            calculate_demands(growth_targets)
+        );
+        
+        let metabolic_trajectory = simulate_metabolic_pathways(
+            current_metabolism.concentrations,
+            metabolic_model.enzymes,
+            time_steps: 100
+        );
+        
+        let resource_allocation = allocate_resources(
+            current_nutrients.to_pool(),
+            network.get_growth_fronts(),
+            AllocationConstraints {
+                max_flow_rate: 10.0,
+                min_reserve: 0.1,
+                priority_zones: identify_priority_zones()
+            }
+        );
+        
+        let enzyme_profile = optimize_enzyme_production(
+            current_metabolism,
+            growth_targets.to_metabolites(),
+            energy_budget: calculate_available_energy()
+        );
+        
+        // Apply optimizations
+        network.set_flow_configuration(optimal_flow);
+        network.allocate_resources(resource_allocation);
+        metabolic_model.set_enzyme_profile(enzyme_profile);
+        
+        // Report metrics
+        print("Flow efficiency: {:.2}%", optimal_flow.efficiency() * 100);
+        print("Predicted biomass yield: {:.2} g", metabolic_trajectory.final_biomass());
+        print("Resource utilization: {:.2}%", resource_allocation.utilization() * 100);
+        print("Enzyme optimization gain: {:.2}x", enzyme_profile.improvement_factor());
+        
+        sleep(Duration::hours(1));
+    }
+}

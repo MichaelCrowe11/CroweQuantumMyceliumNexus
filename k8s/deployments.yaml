@@ -1,0 +1,379 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mycelium-runtime
+  namespace: quantum-mycelium
+  labels:
+    app.kubernetes.io/name: mycelium-runtime
+    app.kubernetes.io/component: runtime
+    app.kubernetes.io/part-of: quantum-mycelium-nexus
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: mycelium-runtime
+  template:
+    metadata:
+      labels:
+        app: mycelium-runtime
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9100"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: quantum-mycelium-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+      containers:
+      - name: mycelium-runtime
+        image: quantum-mycelium/mycelium-runtime:v1.0.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8200
+          name: http
+          protocol: TCP
+        - containerPort: 9100
+          name: metrics
+          protocol: TCP
+        env:
+        - name: RUST_LOG
+          valueFrom:
+            configMapKeyRef:
+              name: quantum-mycelium-config
+              key: RUST_LOG
+        - name: MYCELIUM_THREADS
+          valueFrom:
+            configMapKeyRef:
+              name: quantum-mycelium-config
+              key: MYCELIUM_THREADS
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: quantum-mycelium-secrets
+              key: database-url
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8200
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8200
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: mycelium-programs
+          mountPath: /app/programs
+          readOnly: true
+        - name: data-storage
+          mountPath: /app/data
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+      volumes:
+      - name: mycelium-programs
+        configMap:
+          name: mycelium-programs
+      - name: data-storage
+        persistentVolumeClaim:
+          claimName: mycelium-data-pvc
+      - name: config
+        configMap:
+          name: quantum-mycelium-config
+      
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quantum-compute
+  namespace: quantum-mycelium
+  labels:
+    app.kubernetes.io/name: quantum-compute
+    app.kubernetes.io/component: quantum
+    app.kubernetes.io/part-of: quantum-mycelium-nexus
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: quantum-compute
+  template:
+    metadata:
+      labels:
+        app: quantum-compute
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9100"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: quantum-mycelium-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+      containers:
+      - name: quantum-compute
+        image: quantum-mycelium/quantum-compute:v1.0.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9000
+          name: http
+          protocol: TCP
+        - containerPort: 9100
+          name: metrics
+          protocol: TCP
+        env:
+        - name: QUANTUM_BACKEND
+          valueFrom:
+            configMapKeyRef:
+              name: quantum-mycelium-config
+              key: QUANTUM_BACKEND
+        - name: MAX_QUBITS
+          valueFrom:
+            configMapKeyRef:
+              name: quantum-mycelium-config
+              key: MAX_QUBITS
+        - name: OPTIMIZATION_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: quantum-mycelium-config
+              key: OPTIMIZATION_LEVEL
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 9000
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: quantum-circuits
+          mountPath: /app/circuits
+          readOnly: true
+        - name: data-storage
+          mountPath: /app/data
+      volumes:
+      - name: quantum-circuits
+        configMap:
+          name: quantum-circuit-library
+      - name: data-storage
+        persistentVolumeClaim:
+          claimName: quantum-data-pvc
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-orchestrator
+  namespace: quantum-mycelium
+  labels:
+    app.kubernetes.io/name: integration-orchestrator
+    app.kubernetes.io/component: orchestrator
+    app.kubernetes.io/part-of: quantum-mycelium-nexus
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: integration-orchestrator
+  template:
+    metadata:
+      labels:
+        app: integration-orchestrator
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9100"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: quantum-mycelium-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+      containers:
+      - name: orchestrator
+        image: quantum-mycelium/orchestrator:v1.0.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8300
+          name: http
+          protocol: TCP
+        - containerPort: 9100
+          name: metrics
+          protocol: TCP
+        env:
+        - name: ORCHESTRATOR_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: quantum-mycelium-config
+              key: ORCHESTRATOR_PORT
+        - name: MYCELIUM_RUNTIME_URL
+          value: "http://mycelium-runtime-service:8200"
+        - name: QUANTUM_COMPUTE_URL
+          value: "http://quantum-compute-service:9000"
+        - name: PIPELINE_BATCH_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: quantum-mycelium-config
+              key: PIPELINE_BATCH_SIZE
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: quantum-mycelium-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: quantum-mycelium-secrets
+              key: redis-url
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8300
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8300
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        - name: data-storage
+          mountPath: /app/data
+      volumes:
+      - name: config
+        configMap:
+          name: quantum-mycelium-config
+      - name: data-storage
+        persistentVolumeClaim:
+          claimName: orchestrator-data-pvc
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: quantum-mycelium
+  labels:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/component: ui
+    app.kubernetes.io/part-of: quantum-mycelium-nexus
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: v1.0.0
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 2000
+      containers:
+      - name: frontend
+        image: quantum-mycelium/frontend:v1.0.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        env:
+        - name: REACT_APP_API_BASE_URL
+          value: "http://api-gateway-service:8300"
+        - name: REACT_APP_ENVIRONMENT
+          value: "production"
+        - name: REACT_APP_VERSION
+          value: "1.0.0"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3

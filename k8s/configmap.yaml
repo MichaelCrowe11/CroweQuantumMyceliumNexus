@@ -1,0 +1,261 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quantum-mycelium-config
+  namespace: quantum-mycelium
+  labels:
+    app.kubernetes.io/name: quantum-mycelium-nexus
+    app.kubernetes.io/component: configuration
+data:
+  # Core configuration
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "info"
+  RUST_LOG: "info,quantum_mycelium=debug"
+  
+  # Quantum computing settings
+  QUANTUM_BACKEND: "simulator"
+  QUANTUM_ENABLED: "true"
+  MAX_QUBITS: "20"
+  QUANTUM_TIMEOUT: "30000"
+  ENABLE_NOISE_MODEL: "false"
+  OPTIMIZATION_LEVEL: "3"
+  
+  # Mycelium runtime settings
+  MYCELIUM_THREADS: "4"
+  MYCELIUM_HEAP_SIZE: "2GB"
+  MYCELIUM_STACK_SIZE: "8MB"
+  
+  # Integration orchestrator
+  ORCHESTRATOR_PORT: "8300"
+  PIPELINE_BATCH_SIZE: "100"
+  PIPELINE_BUFFER_SIZE: "1000"
+  PIPELINE_TIMEOUT_MS: "5000"
+  RETRY_ATTEMPTS: "3"
+  
+  # Database configuration
+  DATABASE_MAX_CONNECTIONS: "20"
+  DATABASE_MIN_CONNECTIONS: "5"
+  DATABASE_CONNECTION_TIMEOUT: "30"
+  DATABASE_IDLE_TIMEOUT: "300"
+  
+  # Redis cache
+  REDIS_MAX_CONNECTIONS: "10"
+  REDIS_KEY_PREFIX: "qm:"
+  CACHE_TTL: "300"
+  
+  # Metrics and monitoring
+  ENABLE_METRICS: "true"
+  METRICS_PORT: "9090"
+  HEALTH_CHECK_INTERVAL: "30"
+  
+  # Resource limits
+  MAX_CONCURRENT_COMPUTATIONS: "50"
+  MAX_COMPUTATION_TIME: "1800"
+  MAX_MEMORY_PER_COMPUTATION: "4GB"
+  
+  # Security settings
+  ENABLE_TLS: "true"
+  TLS_MIN_VERSION: "1.2"
+  CORS_ALLOWED_ORIGINS: "*"
+  API_RATE_LIMIT: "1000"
+  
+  # Backup and retention
+  BACKUP_ENABLED: "true"
+  BACKUP_INTERVAL: "24h"
+  DATA_RETENTION_DAYS: "2555" # 7 years for EPA compliance
+  
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quantum-circuit-library
+  namespace: quantum-mycelium
+  labels:
+    app.kubernetes.io/name: quantum-mycelium-nexus
+    app.kubernetes.io/component: circuits
+data:
+  # Pre-built quantum circuits for common operations
+  growth-prediction.yaml: |
+    name: "Growth Prediction Circuit"
+    description: "Quantum circuit for mycelial growth pattern prediction"
+    qubits: 6
+    parameters:
+      - name: "temperature"
+        type: "continuous"
+        range: [0, 40]
+      - name: "humidity"
+        type: "continuous"
+        range: [0, 100]
+    gates:
+      - type: "H"
+        qubits: [0, 1, 2, 3, 4, 5]
+      - type: "RY"
+        qubits: [0]
+        parameters: ["temperature"]
+      - type: "RY"
+        qubits: [1]
+        parameters: ["humidity"]
+      - type: "CNOT"
+        qubits: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]]
+      - type: "QFT"
+        qubits: [0, 1, 2, 3, 4, 5]
+    measurements: [0, 1, 2, 3, 4, 5]
+  
+  nutrient-optimization.yaml: |
+    name: "Nutrient Flow Optimization"
+    description: "QAOA circuit for optimizing nutrient distribution"
+    qubits: 8
+    parameters:
+      - name: "gamma"
+        type: "continuous"
+        range: [0, 3.14159]
+      - name: "beta"
+        type: "continuous"
+        range: [0, 1.5708]
+    gates:
+      - type: "H"
+        qubits: [0, 1, 2, 3, 4, 5, 6, 7]
+      - type: "QAOA_COST"
+        qubits: [0, 1, 2, 3, 4, 5, 6, 7]
+        parameters: ["gamma"]
+      - type: "QAOA_MIXER"
+        qubits: [0, 1, 2, 3, 4, 5, 6, 7]
+        parameters: ["beta"]
+    measurements: [0, 1, 2, 3, 4, 5, 6, 7]
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-config
+  namespace: quantum-mycelium
+  labels:
+    app.kubernetes.io/name: quantum-mycelium-nexus
+    app.kubernetes.io/component: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'quantum-mycelium-prod'
+        environment: 'production'
+    
+    rule_files:
+      - "/etc/prometheus/rules/*.yml"
+    
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+              - alertmanager:9093
+    
+    scrape_configs:
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - quantum-mycelium
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name
+      
+      - job_name: 'kubernetes-services'
+        kubernetes_sd_configs:
+          - role: service
+            namespaces:
+              names:
+                - quantum-mycelium
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scheme]
+            action: replace
+            target_label: __scheme__
+            regex: (https?)
+          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+          - action: labelmap
+            regex: __meta_kubernetes_service_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            action: replace
+            target_label: kubernetes_service_name
+  
+  alerting-rules.yml: |
+    groups:
+      - name: quantum-mycelium.rules
+        rules:
+          - alert: QuantumComputationTimeout
+            expr: quantum_computation_duration_seconds > 1800
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Quantum computation timeout"
+              description: "Quantum computation has been running for more than 30 minutes"
+          
+          - alert: MyceliumExecutorDown
+            expr: up{job="mycelium-executor"} == 0
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Mycelium executor is down"
+              description: "The Mycelium-EI executor has been down for more than 5 minutes"
+          
+          - alert: HighMemoryUsage
+            expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 90
+            for: 2m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High memory usage"
+              description: "Container memory usage is above 90%"
+          
+          - alert: QuantumCoherenceTimeLow
+            expr: quantum_coherence_time_seconds < 0.001
+            for: 30s
+            labels:
+              severity: critical
+            annotations:
+              summary: "Quantum coherence time too low"
+              description: "Quantum coherence time has dropped below 1ms"
+          
+          - alert: NetworkConnectivityLoss
+            expr: mycelium_network_connectivity_ratio < 0.8
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Mycelial network connectivity degraded"
+              description: "Network connectivity has dropped below 80%"
