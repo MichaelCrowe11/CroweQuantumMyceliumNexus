@@ -1,0 +1,321 @@
+# Staging environment values for quantum-mycelium-nexus
+# Optimized for testing and validation
+
+# Global settings for staging
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: "standard"
+  environment: "staging"
+
+# Namespace
+namespace:
+  create: true
+  name: quantum-mycelium-staging
+
+# Reduced replicas for staging
+myceliumRuntime:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: quantum-mycelium/mycelium-runtime
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8200
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  config:
+    threads: 2
+    heapSize: "1GB"
+    stackSize: "4MB"
+  persistence:
+    enabled: true
+    size: 10Gi
+  autoscaling:
+    enabled: false
+    
+quantumCompute:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: quantum-mycelium/quantum-compute
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 9000
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+  config:
+    backend: "simulator"
+    maxQubits: 12  # Reduced for staging
+    optimizationLevel: 2
+    enableNoiseModel: true  # Enable for realistic testing
+  persistence:
+    enabled: true
+    size: 20Gi
+  autoscaling:
+    enabled: false
+
+orchestrator:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: quantum-mycelium/orchestrator
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8300
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  config:
+    pipelineBatchSize: 50
+    pipelineBufferSize: 500
+    pipelineTimeoutMs: 10000
+    retryAttempts: 5
+    maxConcurrentComputations: 10
+  persistence:
+    enabled: true
+    size: 5Gi
+  autoscaling:
+    enabled: false
+
+frontend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: quantum-mycelium/frontend
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 3000
+    nodePort: 30080
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+  config:
+    apiBaseUrl: "http://localhost:30300"
+
+mlModels:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: quantum-mycelium/ml-models
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8400
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  persistence:
+    enabled: true
+    size: 20Gi
+  config:
+    modelPath: "/app/models"
+    enableGPU: false
+    batchSize: 16
+
+# Ingress for staging
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # HTTP for staging
+  hosts:
+    - host: quantum-mycelium-staging.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service:
+            name: frontend-service
+            port: 3000
+        - path: /api
+          pathType: Prefix
+          service:
+            name: orchestrator-service
+            port: 8300
+  tls: []  # No TLS for staging
+
+# Smaller database for staging
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "staging123"
+    database: "quantum_mycelium_staging"
+    username: "qm_staging"
+    password: "staging123"
+  primary:
+    persistence:
+      enabled: true
+      size: 5Gi
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+  backup:
+    enabled: false
+
+redis:
+  enabled: true
+  auth:
+    enabled: false  # Simplified for staging
+  master:
+    persistence:
+      enabled: true
+      size: 2Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+
+rabbitmq:
+  enabled: true
+  auth:
+    username: "staging"
+    password: "staging123"
+  persistence:
+    enabled: true
+    size: 2Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+
+# Enable monitoring for testing
+monitoring:
+  prometheus:
+    enabled: true
+    server:
+      persistence:
+        enabled: true
+        size: 10Gi
+      resources:
+        requests:
+          cpu: 200m
+          memory: 512Mi
+        limits:
+          cpu: 500m
+          memory: 1Gi
+    alertmanager:
+      enabled: true
+      persistence:
+        enabled: false
+  grafana:
+    enabled: true
+    admin:
+      user: admin
+      password: "staging123"
+    persistence:
+      enabled: true
+      size: 1Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+
+tracing:
+  jaeger:
+    enabled: true
+    collector:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 100m
+          memory: 256Mi
+
+# Relaxed security for staging
+rbac:
+  create: true
+networkPolicy:
+  enabled: false  # Simplified networking
+podSecurityPolicy:
+  enabled: false
+
+# No backup in staging
+backup:
+  enabled: false
+
+# Reduced resource quotas
+resourceQuota:
+  enabled: true
+  hard:
+    requests.cpu: "5"
+    requests.memory: "10Gi"
+    limits.cpu: "10"
+    limits.memory: "20Gi"
+    persistentvolumeclaims: "10"
+
+# Staging-specific configuration
+config:
+  global:
+    environment: "staging"
+    logLevel: "debug"  # More verbose logging
+    enableTLS: false
+    corsAllowedOrigins: "*"
+    
+  quantum:
+    backend: "simulator"
+    maxQubits: 12
+    timeoutSeconds: 60
+    enableNoiseModel: true
+    optimizationLevel: 2
+    
+  security:
+    jwtSecret: "staging-jwt-secret-key-123"
+    encryptionKey: "staging-encryption-key-456"
+    apiRateLimit: 100  # Lower rate limit for testing
+    
+  performance:
+    maxConcurrentComputations: 10
+    maxComputationTimeSeconds: 300  # 5 minutes
+    maxMemoryPerComputationGB: 2
+    
+  dataRetention:
+    enabled: false  # No long-term retention in staging
+    retentionDays: 7
+    archiveAfterDays: 1
+    compressionEnabled: false
