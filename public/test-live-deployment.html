@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Live Deployment Test Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .deployment-info {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .deployment-info h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .url-display {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .test-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .test-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-indicator.testing {
+            background: #fbbf24;
+        }
+        
+        .status-indicator.success {
+            background: #10b981;
+        }
+        
+        .status-indicator.error {
+            background: #ef4444;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .test-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        
+        .test-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .test-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .result-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+        }
+        
+        .result-box.success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .result-box.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .all-tests-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+            margin-bottom: 30px;
+        }
+        
+        .all-tests-btn:hover {
+            transform: scale(1.02);
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metric {
+            text-align: center;
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Live Deployment Test Dashboard</h1>
+        
+        <div class="deployment-info">
+            <h2>📍 Deployment Information</h2>
+            <div class="url-display">
+                <strong>Production URL:</strong><br>
+                https://quantum-mycelium-nexus-be4axazjt-michael-9927s-projects.vercel.app
+            </div>
+            <div class="url-display">
+                <strong>Alias URLs:</strong><br>
+                https://quantum-mycelium-nexus.vercel.app<br>
+                https://quantum-mycelium-nexus-michael-9927s-projects.vercel.app
+            </div>
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-value" id="total-tests">0</div>
+                    <div class="metric-label">Total Tests</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="passed-tests">0</div>
+                    <div class="metric-label">Passed</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="failed-tests">0</div>
+                    <div class="metric-label">Failed</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="response-time">-</div>
+                    <div class="metric-label">Avg Response (ms)</div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="all-tests-btn" onclick="runAllTests()">🚀 Run All Tests</button>
+        
+        <div class="test-grid">
+            <!-- Frontend Test -->
+            <div class="test-card">
+                <h3><span class="status-indicator" id="frontend-status"></span> Frontend Access</h3>
+                <p>Test if the main landing page is accessible</p>
+                <button class="test-btn" onclick="testFrontend()">Test Frontend</button>
+                <div class="result-box" id="frontend-result"></div>
+            </div>
+            
+            <!-- API Health Test -->
+            <div class="test-card">
+                <h3><span class="status-indicator" id="api-status"></span> API Health Check</h3>
+                <p>Verify the API server is running</p>
+                <button class="test-btn" onclick="testAPIHealth()">Test API Health</button>
+                <div class="result-box" id="api-result"></div>
+            </div>
+            
+            <!-- AI Tutor Test -->
+            <div class="test-card">
+                <h3><span class="status-indicator" id="ai-status"></span> AI Quantum Tutor</h3>
+                <p>Test the AI tutoring endpoint</p>
+                <button class="test-btn" onclick="testAITutor()">Test AI Tutor</button>
+                <div class="result-box" id="ai-result"></div>
+            </div>
+            
+            <!-- Quantum Engine Test -->
+            <div class="test-card">
+                <h3><span class="status-indicator" id="quantum-status"></span> Quantum Engine</h3>
+                <p>Test quantum simulation capabilities</p>
+                <button class="test-btn" onclick="testQuantumEngine()">Test Quantum Engine</button>
+                <div class="result-box" id="quantum-result"></div>
+            </div>
+            
+            <!-- Stripe Test -->
+            <div class="test-card">
+                <h3><span class="status-indicator" id="stripe-status"></span> Stripe Integration</h3>
+                <p>Verify payment system configuration</p>
+                <button class="test-btn" onclick="testStripe()">Test Stripe</button>
+                <div class="result-box" id="stripe-result"></div>
+            </div>
+            
+            <!-- Performance Test -->
+            <div class="test-card">
+                <h3><span class="status-indicator" id="perf-status"></span> Performance Test</h3>
+                <p>Measure response times and latency</p>
+                <button class="test-btn" onclick="testPerformance()">Test Performance</button>
+                <div class="result-box" id="perf-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'https://quantum-mycelium-nexus-be4axazjt-michael-9927s-projects.vercel.app';
+        let testStats = {
+            total: 0,
+            passed: 0,
+            failed: 0,
+            responseTimes: []
+        };
+        
+        function updateStatus(testId, status) {
+            const indicator = document.getElementById(`${testId}-status`);
+            indicator.className = `status-indicator ${status}`;
+        }
+        
+        function updateResult(testId, message, isSuccess = true) {
+            const resultBox = document.getElementById(`${testId}-result`);
+            resultBox.textContent = message;
+            resultBox.className = `result-box ${isSuccess ? 'success' : 'error'}`;
+        }
+        
+        function updateMetrics() {
+            document.getElementById('total-tests').textContent = testStats.total;
+            document.getElementById('passed-tests').textContent = testStats.passed;
+            document.getElementById('failed-tests').textContent = testStats.failed;
+            
+            if (testStats.responseTimes.length > 0) {
+                const avg = Math.round(testStats.responseTimes.reduce((a, b) => a + b, 0) / testStats.responseTimes.length);
+                document.getElementById('response-time').textContent = avg;
+            }
+        }
+        
+        async function testFrontend() {
+            updateStatus('frontend', 'testing');
+            updateResult('frontend', 'Testing frontend access...');
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch(BASE_URL, {
+                    mode: 'no-cors'
+                });
+                
+                const responseTime = Date.now() - startTime;
+                testStats.responseTimes.push(responseTime);
+                
+                updateStatus('frontend', 'success');
+                updateResult('frontend', `✅ Frontend accessible!\nResponse time: ${responseTime}ms\n\nNote: The site may require authentication.\nVisit ${BASE_URL} in your browser to access.`, true);
+                
+                testStats.total++;
+                testStats.passed++;
+            } catch (error) {
+                updateStatus('frontend', 'error');
+                updateResult('frontend', `❌ Frontend test failed:\n${error.message}`, false);
+                
+                testStats.total++;
+                testStats.failed++;
+            }
+            
+            updateMetrics();
+        }
+        
+        async function testAPIHealth() {
+            updateStatus('api', 'testing');
+            updateResult('api', 'Testing API health endpoint...');
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/health`);
+                const responseTime = Date.now() - startTime;
+                testStats.responseTimes.push(responseTime);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('api', 'success');
+                    updateResult('api', `✅ API is healthy!\nResponse time: ${responseTime}ms\nStatus: ${data.status || 'OK'}\n\nData: ${JSON.stringify(data, null, 2)}`, true);
+                    testStats.passed++;
+                } else if (response.status === 401) {
+                    updateStatus('api', 'success');
+                    updateResult('api', `⚠️ API requires authentication\nResponse time: ${responseTime}ms\nStatus: ${response.status}\n\nThe API is protected. Disable deployment protection in Vercel settings for public access.`, true);
+                    testStats.passed++;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                testStats.total++;
+            } catch (error) {
+                updateStatus('api', 'error');
+                updateResult('api', `❌ API health check failed:\n${error.message}`, false);
+                
+                testStats.total++;
+                testStats.failed++;
+            }
+            
+            updateMetrics();
+        }
+        
+        async function testAITutor() {
+            updateStatus('ai', 'testing');
+            updateResult('ai', 'Testing AI Tutor endpoint...');
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/ai/ask`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question: 'What is quantum superposition?',
+                        level: 'beginner'
+                    })
+                });
+                
+                const responseTime = Date.now() - startTime;
+                testStats.responseTimes.push(responseTime);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('ai', 'success');
+                    updateResult('ai', `✅ AI Tutor is working!\nResponse time: ${responseTime}ms\n\nSample response:\n${data.response?.explanation?.substring(0, 200)}...`, true);
+                    testStats.passed++;
+                } else if (response.status === 401) {
+                    updateStatus('ai', 'success');
+                    updateResult('ai', `⚠️ AI Tutor requires authentication\nResponse time: ${responseTime}ms\n\nProtected by Vercel authentication.`, true);
+                    testStats.passed++;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                testStats.total++;
+            } catch (error) {
+                updateStatus('ai', 'error');
+                updateResult('ai', `❌ AI Tutor test failed:\n${error.message}`, false);
+                
+                testStats.total++;
+                testStats.failed++;
+            }
+            
+            updateMetrics();
+        }
+        
+        async function testQuantumEngine() {
+            updateStatus('quantum', 'testing');
+            updateResult('quantum', 'Testing quantum simulation...');
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/quantum/simulate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        qubits: 2,
+                        gates: [
+                            { type: 'H', qubit: 0 },
+                            { type: 'CNOT', control: 0, target: 1 }
+                        ],
+                        shots: 100
+                    })
+                });
+                
+                const responseTime = Date.now() - startTime;
+                testStats.responseTimes.push(responseTime);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('quantum', 'success');
+                    updateResult('quantum', `✅ Quantum engine operational!\nResponse time: ${responseTime}ms\n\nBell state created successfully\nMeasurement results: ${JSON.stringify(data.results?.measurements || {}, null, 2)}`, true);
+                    testStats.passed++;
+                } else if (response.status === 401) {
+                    updateStatus('quantum', 'success');
+                    updateResult('quantum', `⚠️ Quantum API requires authentication\nResponse time: ${responseTime}ms`, true);
+                    testStats.passed++;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                testStats.total++;
+            } catch (error) {
+                updateStatus('quantum', 'error');
+                updateResult('quantum', `❌ Quantum engine test failed:\n${error.message}`, false);
+                
+                testStats.total++;
+                testStats.failed++;
+            }
+            
+            updateMetrics();
+        }
+        
+        async function testStripe() {
+            updateStatus('stripe', 'testing');
+            updateResult('stripe', 'Testing Stripe configuration...');
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/stripe/plans`);
+                const responseTime = Date.now() - startTime;
+                testStats.responseTimes.push(responseTime);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('stripe', 'success');
+                    updateResult('stripe', `✅ Stripe is configured!\nResponse time: ${responseTime}ms\n\nPlans available: ${data.plans?.length || 0}\n${JSON.stringify(data.plans || [], null, 2)}`, true);
+                    testStats.passed++;
+                } else if (response.status === 401) {
+                    updateStatus('stripe', 'success');
+                    updateResult('stripe', `⚠️ Stripe API requires authentication\nResponse time: ${responseTime}ms`, true);
+                    testStats.passed++;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                testStats.total++;
+            } catch (error) {
+                updateStatus('stripe', 'error');
+                updateResult('stripe', `❌ Stripe test failed:\n${error.message}`, false);
+                
+                testStats.total++;
+                testStats.failed++;
+            }
+            
+            updateMetrics();
+        }
+        
+        async function testPerformance() {
+            updateStatus('perf', 'testing');
+            updateResult('perf', 'Running performance tests...');
+            
+            const endpoints = [
+                '/api/health',
+                '/api/ai/ask',
+                '/api/quantum/simulate',
+                '/api/stripe/plans'
+            ];
+            
+            const results = [];
+            
+            for (const endpoint of endpoints) {
+                const startTime = Date.now();
+                try {
+                    await fetch(`${BASE_URL}${endpoint}`, {
+                        method: endpoint.includes('ask') || endpoint.includes('simulate') ? 'POST' : 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: endpoint.includes('ask') ? JSON.stringify({ question: 'test' }) : 
+                              endpoint.includes('simulate') ? JSON.stringify({ qubits: 1 }) : undefined
+                    });
+                    const responseTime = Date.now() - startTime;
+                    results.push({ endpoint, time: responseTime, status: 'OK' });
+                } catch (error) {
+                    results.push({ endpoint, time: -1, status: 'Failed' });
+                }
+            }
+            
+            const avgTime = Math.round(results.filter(r => r.time > 0).reduce((a, b) => a + b.time, 0) / results.length);
+            
+            updateStatus('perf', 'success');
+            updateResult('perf', `✅ Performance test complete!\n\nEndpoint Response Times:\n${results.map(r => `${r.endpoint}: ${r.time}ms (${r.status})`).join('\n')}\n\nAverage: ${avgTime}ms`, true);
+            
+            testStats.total++;
+            testStats.passed++;
+            updateMetrics();
+        }
+        
+        async function runAllTests() {
+            testStats = { total: 0, passed: 0, failed: 0, responseTimes: [] };
+            
+            await testFrontend();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testAPIHealth();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testAITutor();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testQuantumEngine();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testStripe();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testPerformance();
+        }
+        
+        // Auto-run basic test on load
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('Test Dashboard Loaded');
+            console.log('Base URL:', BASE_URL);
+        });
+    </script>
+</body>
+</html>

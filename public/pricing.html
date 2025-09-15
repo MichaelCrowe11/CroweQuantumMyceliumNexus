@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - QuantumMycelium Nexus</title>
+    <meta name="description" content="Choose your quantum computing plan - pay with Bitcoin, Ethereum, and other cryptocurrencies">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        
+        header {
+            background: rgba(45, 55, 72, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(226, 232, 240, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.2);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .hero-section {
+            text-align: center;
+            margin-bottom: 4rem;
+            padding: 2rem 0;
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: #a0aec0;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .crypto-badges {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .crypto-badge {
+            background: rgba(45, 55, 72, 0.8);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #a0aec0;
+        }
+        
+        .billing-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 3rem;
+            background: rgba(45, 55, 72, 0.5);
+            border-radius: 50px;
+            padding: 0.5rem;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            color: #a0aec0;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        
+        .pricing-card {
+            background: rgba(45, 55, 72, 0.8);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .pricing-card.featured {
+            border-color: #667eea;
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .pricing-card.featured::before {
+            content: 'MOST POPULAR';
+            position: absolute;
+            top: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .plan-price {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #e2e8f0;
+            margin-bottom: 0.5rem;
+        }
+        
+        .plan-price .currency {
+            font-size: 1.5rem;
+            color: #a0aec0;
+        }
+        
+        .plan-period {
+            color: #a0aec0;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+        
+        .plan-savings {
+            background: rgba(158, 206, 106, 0.2);
+            color: #9ece6a;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            display: inline-block;
+        }
+        
+        .features-list {
+            text-align: left;
+            margin-bottom: 2.5rem;
+        }
+        
+        .features-list li {
+            padding: 0.5rem 0;
+            color: #cbd5e0;
+            position: relative;
+            padding-left: 1.5rem;
+            list-style: none;
+        }
+        
+        .features-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #9ece6a;
+            font-weight: bold;
+        }
+        
+        .features-list li.unavailable {
+            color: #6b7280;
+            text-decoration: line-through;
+        }
+        
+        .features-list li.unavailable::before {
+            content: '✗';
+            color: #f87171;
+        }
+        
+        .plan-cta {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .plan-cta.primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .plan-cta.secondary {
+            background: rgba(226, 232, 240, 0.1);
+            color: #a0aec0;
+            border: 1px solid rgba(226, 232, 240, 0.2);
+        }
+        
+        .plan-cta:hover {
+            transform: translateY(-2px);
+        }
+        
+        .plan-cta.primary:hover {
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .plan-cta.secondary:hover {
+            background: rgba(226, 232, 240, 0.15);
+            color: #e2e8f0;
+        }
+        
+        .enterprise-contact {
+            background: rgba(45, 55, 72, 0.8);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .faq-section {
+            margin-top: 4rem;
+        }
+        
+        .faq-title {
+            text-align: center;
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 2rem;
+        }
+        
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+        
+        .faq-item {
+            background: rgba(45, 55, 72, 0.5);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+        
+        .faq-question {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.8rem;
+        }
+        
+        .faq-answer {
+            color: #a0aec0;
+            line-height: 1.6;
+        }
+        
+        .payment-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .payment-modal.active {
+            display: flex;
+        }
+        
+        .payment-content {
+            background: rgba(45, 55, 72, 0.95);
+            border: 1px solid rgba(226, 232, 240, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: #a0aec0;
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-close:hover {
+            background: rgba(226, 232, 240, 0.1);
+            color: #e2e8f0;
+        }
+        
+        .payment-summary {
+            margin-bottom: 2rem;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #667eea;
+            border-top: 1px solid rgba(226, 232, 240, 0.1);
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .crypto-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .crypto-option {
+            background: rgba(226, 232, 240, 0.05);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .crypto-option:hover,
+        .crypto-option.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .crypto-icon {
+            font-size: 2rem;
+        }
+        
+        .crypto-name {
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(45, 55, 72, 0.95);
+            color: #e2e8f0;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(226, 232, 240, 0.2);
+            font-weight: 600;
+            z-index: 10001;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            border-left: 4px solid #9ece6a;
+        }
+        
+        .toast.error {
+            border-left: 4px solid #f7768e;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .pricing-card.featured {
+                transform: none;
+            }
+            
+            .crypto-badges {
+                justify-content: center;
+            }
+            
+            .crypto-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">💰 Quantum Pricing</div>
+            <div class="header-nav">
+                <a href="index.html" class="btn btn-secondary">← Home</a>
+                <a href="mycelium-playground.html" class="btn btn-secondary">Playground</a>
+                <a href="docs.html" class="btn btn-secondary">Documentation</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero-section">
+            <h1 class="hero-title">Choose Your Quantum Plan</h1>
+            <p class="hero-subtitle">
+                Unlock the full power of quantum computing with flexible plans. 
+                Pay with Bitcoin, Ethereum, or any major cryptocurrency.
+            </p>
+            
+            <div class="crypto-badges">
+                <div class="crypto-badge">₿ Bitcoin</div>
+                <div class="crypto-badge">Ξ Ethereum</div>
+                <div class="crypto-badge">Ł Litecoin</div>
+                <div class="crypto-badge">USDC</div>
+                <div class="crypto-badge">BCH</div>
+                <div class="crypto-badge">+ More</div>
+            </div>
+        </div>
+
+        <div class="billing-toggle">
+            <button class="toggle-btn active" data-period="monthly">Monthly</button>
+            <button class="toggle-btn" data-period="annual">Annual (Save 20%)</button>
+        </div>
+
+        <div class="pricing-grid" id="pricingGrid">
+            <!-- Pricing cards will be loaded here -->
+        </div>
+
+        <div class="enterprise-contact">
+            <h3 style="color: #667eea; margin-bottom: 1rem; font-size: 2rem;">🏢 Enterprise Solutions</h3>
+            <p style="color: #a0aec0; margin-bottom: 2rem; font-size: 1.1rem;">
+                Need custom quantum computing solutions for your organization? 
+                We offer enterprise packages with dedicated support, custom algorithms, and on-premises deployment.
+            </p>
+            <button class="btn" onclick="contactEnterprise()">
+                📞 Contact Enterprise Sales
+            </button>
+        </div>
+
+        <div class="faq-section">
+            <h2 class="faq-title">Frequently Asked Questions</h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <div class="faq-question">Why accept cryptocurrency payments?</div>
+                    <div class="faq-answer">
+                        Cryptocurrency payments offer faster processing, lower fees, and global accessibility. 
+                        As a quantum computing platform, we embrace cutting-edge financial technology.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Which cryptocurrencies do you accept?</div>
+                    <div class="faq-answer">
+                        We accept Bitcoin, Ethereum, Litecoin, Bitcoin Cash, USDC, and many others through Coinbase Commerce. 
+                        New payment methods are added regularly.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Can I upgrade or downgrade my plan?</div>
+                    <div class="faq-answer">
+                        Yes! You can change your plan at any time. Upgrades are prorated, and you'll get immediate access to new features. 
+                        Downgrades take effect at your next billing cycle.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">What happens if I exceed my limits?</div>
+                    <div class="faq-answer">
+                        We'll send you notifications as you approach your limits. If exceeded, non-critical features may be temporarily restricted. 
+                        You can upgrade at any time to increase your limits.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Is there a money-back guarantee?</div>
+                    <div class="faq-answer">
+                        We offer a 30-day satisfaction guarantee. If you're not completely satisfied, 
+                        contact our support team for a full refund within 30 days of purchase.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">How secure are cryptocurrency payments?</div>
+                    <div class="faq-answer">
+                        We use Coinbase Commerce, a leading cryptocurrency payment processor. 
+                        All transactions are secured by blockchain technology and processed through enterprise-grade security.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="payment-modal" id="paymentModal">
+        <div class="payment-content">
+            <button class="modal-close" onclick="closePaymentModal()">&times;</button>
+            <h3 style="color: #667eea; margin-bottom: 2rem;">Complete Your Purchase</h3>
+            
+            <div class="payment-summary" id="paymentSummary">
+                <!-- Payment summary will be loaded here -->
+            </div>
+            
+            <div class="crypto-options" id="cryptoOptions">
+                <div class="crypto-option selected" data-currency="USD">
+                    <div class="crypto-icon">💵</div>
+                    <div class="crypto-name">USD Pricing</div>
+                </div>
+                <div class="crypto-option" data-currency="BTC">
+                    <div class="crypto-icon">₿</div>
+                    <div class="crypto-name">Bitcoin</div>
+                </div>
+                <div class="crypto-option" data-currency="ETH">
+                    <div class="crypto-icon">Ξ</div>
+                    <div class="crypto-name">Ethereum</div>
+                </div>
+                <div class="crypto-option" data-currency="LTC">
+                    <div class="crypto-icon">Ł</div>
+                    <div class="crypto-name">Litecoin</div>
+                </div>
+            </div>
+            
+            <button class="btn" style="width: 100%; margin-top: 1rem;" onclick="proceedToPayment()" id="proceedBtn">
+                🚀 Proceed to Payment
+            </button>
+        </div>
+    </div>
+
+    <script src="js/sharing.js"></script>
+    <script>
+        // Global state
+        let currentBillingPeriod = 'monthly';
+        let selectedPlan = null;
+        let selectedCurrency = 'USD';
+
+        // Subscription plans data
+        const plans = {
+            free: {
+                id: 'free',
+                name: 'Free Tier',
+                price: { monthly: 0, annual: 0 },
+                features: [
+                    'Basic quantum circuit designer',
+                    'Limited Mycelium-EI programs (5/month)',
+                    'Community algorithm library access', 
+                    'Basic documentation',
+                    'Public code sharing only',
+                    { text: 'Priority support', available: false },
+                    { text: 'Private repositories', available: false },
+                    { text: 'Advanced analytics', available: false }
+                ],
+                limits: {
+                    circuits: '50/month',
+                    qubits: '5 max',
+                    storage: '1GB'
+                }
+            },
+            pro: {
+                id: 'pro',
+                name: 'Quantum Pro',
+                price: { monthly: 29, annual: 278 }, // 20% annual discount
+                popular: true,
+                features: [
+                    'Advanced quantum circuit designer',
+                    'Unlimited Mycelium-EI programs',
+                    'Premium algorithm library',
+                    'Priority support',
+                    'Private repositories',
+                    'Advanced analytics',
+                    'Export capabilities',
+                    'Collaboration tools'
+                ],
+                limits: {
+                    circuits: '1,000/month',
+                    qubits: '15 max',
+                    storage: '10GB'
+                }
+            },
+            enterprise: {
+                id: 'enterprise',
+                name: 'Quantum Enterprise',
+                price: { monthly: 199, annual: 1910 }, // 20% annual discount
+                features: [
+                    'Everything in Pro',
+                    'Custom quantum algorithms',
+                    'Dedicated support team',
+                    'On-premises deployment options',
+                    'Custom integrations',
+                    'Advanced security features',
+                    'Team collaboration (up to 50 users)',
+                    'Custom branding',
+                    'SLA guarantees'
+                ],
+                limits: {
+                    circuits: 'Unlimited',
+                    qubits: '50 max',
+                    storage: '100GB'
+                }
+            },
+            lifetime: {
+                id: 'lifetime',
+                name: 'Quantum Lifetime',
+                price: { monthly: 999, annual: 999 },
+                billing: 'one_time',
+                special: true,
+                features: [
+                    'Lifetime access to all Pro features',
+                    'Forever updates and new algorithms',
+                    'Exclusive beta access',
+                    'Lifetime priority support',
+                    'Special community status',
+                    'Annual exclusive webinars',
+                    'Legacy protection guarantee'
+                ],
+                limits: {
+                    circuits: 'Unlimited',
+                    qubits: '25 max',
+                    storage: '25GB'
+                }
+            }
+        };
+
+        // Initialize the page
+        function init() {
+            renderPricingCards();
+            setupEventListeners();
+        }
+
+        // Render pricing cards
+        function renderPricingCards() {
+            const grid = document.getElementById('pricingGrid');
+            const period = currentBillingPeriod;
+            
+            grid.innerHTML = Object.values(plans).map(plan => {
+                const price = plan.price[period] || plan.price.monthly;
+                const isAnnual = period === 'annual' && plan.price.annual < (plan.price.monthly * 12);
+                const savings = isAnnual ? Math.round(((plan.price.monthly * 12) - plan.price.annual) / (plan.price.monthly * 12) * 100) : 0;
+                
+                return `
+                    <div class="pricing-card ${plan.popular ? 'featured' : ''}" data-plan="${plan.id}">
+                        <div class="plan-name">${plan.name}</div>
+                        <div class="plan-price">
+                            <span class="currency">$</span>${price}
+                        </div>
+                        <div class="plan-period">
+                            ${plan.billing === 'one_time' ? 'One-time payment' : `per ${period === 'annual' ? 'year' : 'month'}`}
+                        </div>
+                        ${savings > 0 ? `<div class="plan-savings">Save ${savings}% annually!</div>` : ''}
+                        
+                        <ul class="features-list">
+                            ${plan.features.map(feature => {
+                                if (typeof feature === 'string') {
+                                    return `<li>${feature}</li>`;
+                                } else {
+                                    return `<li class="${feature.available === false ? 'unavailable' : ''}">${feature.text}</li>`;
+                                }
+                            }).join('')}
+                        </ul>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <div style="font-size: 0.9rem; color: #a0aec0; margin-bottom: 0.5rem;">
+                                <strong>Limits:</strong>
+                            </div>
+                            <div style="font-size: 0.8rem; color: #a0aec0;">
+                                🔄 Circuits: ${plan.limits.circuits}<br>
+                                ⚛️ Qubits: ${plan.limits.qubits}<br>
+                                💾 Storage: ${plan.limits.storage}
+                            </div>
+                        </div>
+                        
+                        <button class="plan-cta ${plan.id === 'free' ? 'secondary' : 'primary'}" 
+                                onclick="selectPlan('${plan.id}')">
+                            ${plan.id === 'free' ? 'Get Started Free' : 
+                              plan.billing === 'one_time' ? 'Buy Lifetime Access' : 
+                              'Start Subscription'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Billing period toggle
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    currentBillingPeriod = this.dataset.period;
+                    renderPricingCards();
+                });
+            });
+
+            // Crypto currency selection
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.crypto-option')) {
+                    document.querySelectorAll('.crypto-option').forEach(opt => opt.classList.remove('selected'));
+                    e.target.closest('.crypto-option').classList.add('selected');
+                    selectedCurrency = e.target.closest('.crypto-option').dataset.currency;
+                }
+            });
+
+            // Close modal on outside click
+            document.getElementById('paymentModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closePaymentModal();
+                }
+            });
+        }
+
+        // Select a plan
+        function selectPlan(planId) {
+            selectedPlan = plans[planId];
+            
+            if (planId === 'free') {
+                // Redirect to signup for free plan
+                window.location.href = 'mycelium-playground.html';
+                return;
+            }
+
+            showPaymentModal();
+        }
+
+        // Show payment modal
+        function showPaymentModal() {
+            if (!selectedPlan) return;
+            
+            const modal = document.getElementById('paymentModal');
+            const summary = document.getElementById('paymentSummary');
+            
+            const price = selectedPlan.price[currentBillingPeriod] || selectedPlan.price.monthly;
+            const billing = selectedPlan.billing === 'one_time' ? 'One-time payment' : 
+                           currentBillingPeriod === 'annual' ? 'Billed annually' : 'Billed monthly';
+            
+            summary.innerHTML = `
+                <div class="summary-row">
+                    <span>${selectedPlan.name}</span>
+                    <span>$${price}</span>
+                </div>
+                <div class="summary-row">
+                    <span style="color: #a0aec0; font-size: 0.9rem;">${billing}</span>
+                    <span></span>
+                </div>
+                <div class="summary-total">
+                    <span>Total</span>
+                    <span>$${price}</span>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+            trackEvent('payment_modal_opened', { plan: selectedPlan.id, billing: currentBillingPeriod });
+        }
+
+        // Close payment modal
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('active');
+        }
+
+        // Proceed to payment
+        async function proceedToPayment() {
+            if (!selectedPlan) return;
+            
+            const proceedBtn = document.getElementById('proceedBtn');
+            const originalText = proceedBtn.innerHTML;
+            
+            proceedBtn.innerHTML = '<span class="loading"></span> Creating Payment...';
+            proceedBtn.disabled = true;
+            
+            try {
+                // Check if user is logged in
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    showToast('Please log in to purchase a subscription', 'error');
+                    // Redirect to login or show login modal
+                    return;
+                }
+
+                // Create payment charge
+                const response = await fetch('/api/payments/create-charge', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        plan_id: selectedPlan.id,
+                        billing_period: currentBillingPeriod,
+                        currency: selectedCurrency
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to create payment');
+                }
+
+                const result = await response.json();
+                
+                // Redirect to Coinbase Commerce hosted page
+                trackEvent('payment_initiated', { 
+                    plan: selectedPlan.id, 
+                    billing: currentBillingPeriod,
+                    currency: selectedCurrency,
+                    charge_id: result.charge.id
+                });
+                
+                window.location.href = result.charge.hosted_url;
+
+            } catch (error) {
+                console.error('Payment creation error:', error);
+                showToast(error.message || 'Failed to create payment. Please try again.', 'error');
+            } finally {
+                proceedBtn.innerHTML = originalText;
+                proceedBtn.disabled = false;
+            }
+        }
+
+        // Contact enterprise sales
+        function contactEnterprise() {
+            const subject = encodeURIComponent('Enterprise QuantumMycelium Nexus Inquiry');
+            const body = encodeURIComponent(`Hello,
+
+I'm interested in learning more about QuantumMycelium Nexus Enterprise solutions for my organization.
+
+Please provide information about:
+- Custom quantum algorithm development
+- On-premises deployment options
+- Enterprise support and SLA
+- Team collaboration features
+- Pricing for enterprise plans
+
+Organization: [Your Organization]
+Team Size: [Number of users]
+Use Case: [Describe your quantum computing needs]
+
+Best regards,
+[Your Name]`);
+
+            window.location.href = `mailto:enterprise@mycelium-ei.io?subject=${subject}&body=${body}`;
+            
+            trackEvent('enterprise_contact', { source: 'pricing_page' });
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            let toast = document.querySelector('.toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.className = 'toast';
+                document.body.appendChild(toast);
+            }
+
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        // Track events
+        function trackEvent(eventName, properties = {}) {
+            console.log('Event tracked:', { eventName, properties });
+            
+            // Integration with analytics
+            if (typeof gtag !== 'undefined') {
+                gtag('event', eventName, properties);
+            }
+            
+            // Integration with social sharing manager
+            if (typeof socialSharingManager !== 'undefined') {
+                socialSharingManager.trackEvent(eventName, properties);
+            }
+        }
+
+        // Check URL parameters for success/cancel
+        function checkPaymentStatus() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            
+            if (status === 'success') {
+                showToast('Payment successful! Your subscription is now active.', 'success');
+                trackEvent('payment_completed', { source: 'redirect' });
+            } else if (status === 'cancelled') {
+                showToast('Payment was cancelled. You can try again anytime.', 'error');
+                trackEvent('payment_cancelled', { source: 'redirect' });
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+            checkPaymentStatus();
+        });
+    </script>
+</body>
+</html>

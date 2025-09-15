@@ -1,0 +1,81 @@
+# Multi-stage Dockerfile for Fly.io deployment
+# This builds all services into a single deployable container
+
+# Stage 1: Build frontend
+FROM node:18-alpine AS frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm ci --only=production
+COPY frontend/ ./
+RUN npm run build
+
+# Stage 2: Build gateway
+FROM node:18-alpine AS gateway-builder
+WORKDIR /app/gateway
+COPY gateway/package*.json ./
+RUN npm ci --only=production
+COPY gateway/ ./
+
+# Stage 3: Prepare Python services
+FROM python:3.11-slim AS python-builder
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and install MyceliumEI
+COPY MyceliumEI-Production/requirements.txt /app/mycelium-requirements.txt
+RUN pip install --no-cache-dir -r /app/mycelium-requirements.txt
+
+# Copy MyceliumEI application
+COPY MyceliumEI-Production/ /app/mycelium/
+
+# Stage 4: Final production image
+FROM python:3.11-slim
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    nodejs \
+    npm \
+    nginx \
+    supervisor \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Python dependencies from builder
+COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=python-builder /usr/local/bin /usr/local/bin
+
+# Copy applications
+COPY --from=python-builder /app/mycelium /app/mycelium
+COPY --from=gateway-builder /app/gateway /app/gateway
+COPY --from=frontend-builder /app/frontend/build /app/frontend/build
+
+# Copy configuration files
+COPY deployment/nginx.conf /etc/nginx/nginx.conf
+COPY deployment/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data /app/uploads
+
+# Environment variables
+ENV NODE_ENV=production \
+    PYTHONUNBUFFERED=1 \
+    PORT=8080
+
+# Expose ports
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+# Start supervisor to manage all processes
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

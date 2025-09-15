@@ -1,0 +1,27 @@
+{
+  "name": "quantum-mycelium-nexus-frontend",
+  "version": "1.0.0",
+  "description": "Revolutionary AI-powered quantum computing platform",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Frontend build complete'",
+    "start": "serve .",
+    "dev": "serve .",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "quantum",
+    "computing",
+    "ai",
+    "education",
+    "mycelium"
+  ],
+  "author": "Michael Crowe",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

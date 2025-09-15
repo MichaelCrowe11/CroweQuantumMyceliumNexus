@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - QuantumMycelium Nexus</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: #e2e8f0;
+            line-height: 1.7;
+        }
+        
+        header {
+            background: rgba(45, 55, 72, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(226, 232, 240, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.2);
+        }
+        
+        .container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: calc(100vh - 80px);
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: rgba(45, 55, 72, 0.8);
+            border-right: 1px solid rgba(226, 232, 240, 0.1);
+            padding: 2rem 1rem;
+            overflow-y: auto;
+            position: sticky;
+            top: 80px;
+            height: calc(100vh - 80px);
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+        
+        .nav-title {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .nav-item {
+            display: block;
+            color: #a0aec0;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 0.3rem;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .nav-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            transform: translateX(4px);
+        }
+        
+        .nav-item.active {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            border-left: 3px solid #667eea;
+        }
+        
+        .nav-item.sub {
+            margin-left: 1rem;
+            font-size: 0.85rem;
+        }
+        
+        .section {
+            display: none;
+            max-width: 800px;
+        }
+        
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+        }
+        
+        h3 {
+            color: #7dcfff;
+            font-size: 1.3rem;
+            margin: 1.5rem 0 0.8rem;
+        }
+        
+        h4 {
+            color: #9ece6a;
+            font-size: 1.1rem;
+            margin: 1rem 0 0.5rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: #cbd5e0;
+        }
+        
+        code {
+            background: rgba(26, 27, 38, 0.8);
+            color: #c0caf5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background: rgba(26, 27, 38, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+            color: #c0caf5;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: #667eea;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(102, 126, 234, 0.3);
+        }
+        
+        .info-box {
+            background: rgba(125, 207, 255, 0.1);
+            border-left: 4px solid #7dcfff;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: rgba(224, 175, 104, 0.1);
+            border-left: 4px solid #e0af68;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .success-box {
+            background: rgba(158, 206, 106, 0.1);
+            border-left: 4px solid #9ece6a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .error-box {
+            background: rgba(247, 118, 142, 0.1);
+            border-left: 4px solid #f7768e;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+            color: #cbd5e0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: rgba(45, 55, 72, 0.5);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.1);
+        }
+        
+        th {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .tutorial-step {
+            background: rgba(45, 55, 72, 0.5);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .step-number {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            float: left;
+            margin-right: 1rem;
+        }
+        
+        .api-endpoint {
+            background: rgba(26, 27, 38, 0.9);
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .method {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+        
+        .method.get { background: rgba(158, 206, 106, 0.2); color: #9ece6a; }
+        .method.post { background: rgba(125, 207, 255, 0.2); color: #7dcfff; }
+        .method.put { background: rgba(224, 175, 104, 0.2); color: #e0af68; }
+        .method.delete { background: rgba(247, 118, 142, 0.2); color: #f7768e; }
+        
+        .search-box {
+            width: 100%;
+            background: rgba(26, 27, 38, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.2);
+            border-radius: 8px;
+            padding: 0.8rem;
+            color: #c0caf5;
+            margin-bottom: 2rem;
+        }
+        
+        .search-box::placeholder {
+            color: #565f89;
+        }
+        
+        .breadcrumb {
+            color: #7dcfff;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        /* Syntax highlighting */
+        .keyword { color: #bb9af7; font-weight: 600; }
+        .type { color: #7dcfff; }
+        .function { color: #7aa2f7; }
+        .string { color: #9ece6a; }
+        .number { color: #ff9e64; }
+        .comment { color: #565f89; font-style: italic; }
+        .quantum { color: #f7768e; font-weight: 600; }
+        .network { color: #e0af68; font-weight: 600; }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">🧬 QuantumMycelium Nexus</div>
+            <div class="header-nav">
+                <a href="index.html" class="btn btn-secondary">← Home</a>
+                <a href="mycelium-playground.html" class="btn btn-secondary">Playground</a>
+                <a href="quantum-demo.html" class="btn btn-secondary">Circuit Designer</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav class="sidebar">
+            <input type="text" class="search-box" placeholder="Search documentation..." id="searchBox">
+            
+            <div class="nav-section">
+                <div class="nav-title">Getting Started</div>
+                <a href="#" class="nav-item active" data-section="overview">Platform Overview</a>
+                <a href="#" class="nav-item" data-section="quickstart">Quick Start Guide</a>
+                <a href="#" class="nav-item" data-section="installation">Installation</a>
+                <a href="#" class="nav-item" data-section="first-program">Your First Program</a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-title">Mycelium-EI Language</div>
+                <a href="#" class="nav-item" data-section="language-intro">Language Introduction</a>
+                <a href="#" class="nav-item" data-section="syntax">Syntax Reference</a>
+                <a href="#" class="nav-item" data-section="keywords">Keywords & Operators</a>
+                <a href="#" class="nav-item" data-section="types">Data Types</a>
+                <a href="#" class="nav-item" data-section="functions">Functions</a>
+                <a href="#" class="nav-item" data-section="networks">Networks & Nodes</a>
+                <a href="#" class="nav-item" data-section="quantum">Quantum Operations</a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-title">Tutorials</div>
+                <a href="#" class="nav-item" data-section="tutorial-basic">Basic Network Creation</a>
+                <a href="#" class="nav-item" data-section="tutorial-quantum">Quantum Enhancement</a>
+                <a href="#" class="nav-item" data-section="tutorial-optimization">Resource Optimization</a>
+                <a href="#" class="nav-item" data-section="tutorial-visualization">Visualization</a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-title">API Reference</div>
+                <a href="#" class="nav-item" data-section="api-overview">API Overview</a>
+                <a href="#" class="nav-item" data-section="api-auth">Authentication</a>
+                <a href="#" class="nav-item" data-section="api-quantum">Quantum Simulation</a>
+                <a href="#" class="nav-item" data-section="api-circuits">Circuit Management</a>
+                <a href="#" class="nav-item" data-section="api-mycelium">Mycelium Compiler</a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-title">Advanced Topics</div>
+                <a href="#" class="nav-item" data-section="algorithms">Quantum Algorithms</a>
+                <a href="#" class="nav-item" data-section="optimization">Performance Optimization</a>
+                <a href="#" class="nav-item" data-section="deployment">Deployment Guide</a>
+                <a href="#" class="nav-item" data-section="contributing">Contributing</a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <!-- Overview Section -->
+            <section id="overview" class="section active">
+                <div class="breadcrumb">
+                    <a href="#">Documentation</a> / Getting Started / Platform Overview
+                </div>
+                
+                <h1>QuantumMycelium Nexus</h1>
+                <p>Welcome to the comprehensive documentation for QuantumMycelium Nexus, a revolutionary platform that combines quantum computing with biological network modeling to create powerful computational ecosystems.</p>
+                
+                <h2>What is QuantumMycelium Nexus?</h2>
+                <p>QuantumMycelium Nexus is a cutting-edge platform that enables developers and researchers to model, simulate, and optimize biological networks using quantum-enhanced algorithms. Our platform provides:</p>
+                
+                <ul>
+                    <li><strong>Mycelium-EI Language:</strong> A domain-specific programming language for biological network modeling</li>
+                    <li><strong>Quantum Circuit Designer:</strong> Visual tools for creating and testing quantum circuits</li>
+                    <li><strong>Network Simulation Engine:</strong> High-performance simulation of complex biological systems</li>
+                    <li><strong>Optimization Algorithms:</strong> Quantum-powered optimization for resource distribution</li>
+                    <li><strong>Visualization Tools:</strong> Real-time 3D visualization of network dynamics</li>
+                </ul>
+                
+                <div class="info-box">
+                    <strong>💡 Key Innovation:</strong> Our platform uniquely combines principles from mycorrhizal networks with quantum computing to solve complex optimization problems in biological systems.
+                </div>
+                
+                <h2>Core Features</h2>
+                
+                <h3>🧬 Biological Network Modeling</h3>
+                <p>Model complex biological networks inspired by mycelial growth patterns, incorporating:</p>
+                <ul>
+                    <li>Dynamic node creation and connection</li>
+                    <li>Resource flow optimization</li>
+                    <li>Adaptive network topology</li>
+                    <li>Environmental response modeling</li>
+                </ul>
+                
+                <h3>⚛️ Quantum Enhancement</h3>
+                <p>Leverage quantum computing for enhanced network capabilities:</p>
+                <ul>
+                    <li>Quantum superposition for exploring multiple network states</li>
+                    <li>Entanglement for long-range network correlations</li>
+                    <li>Quantum algorithms for optimization problems</li>
+                    <li>Hybrid classical-quantum computation</li>
+                </ul>
+                
+                <h3>🔬 Research Applications</h3>
+                <p>Our platform supports research in various domains:</p>
+                <ul>
+                    <li>Ecological network dynamics</li>
+                    <li>Supply chain optimization</li>
+                    <li>Neural network modeling</li>
+                    <li>Social network analysis</li>
+                    <li>Transportation systems</li>
+                </ul>
+                
+                <h2>Getting Started</h2>
+                <p>Ready to explore? Here's how to begin:</p>
+                
+                <ol>
+                    <li>Check out our <a href="#" onclick="showSection('quickstart')">Quick Start Guide</a></li>
+                    <li>Try the <a href="mycelium-playground.html">Interactive Playground</a></li>
+                    <li>Explore <a href="#" onclick="showSection('tutorial-basic')">Tutorial Examples</a></li>
+                    <li>Read the <a href="#" onclick="showSection('language-intro')">Language Reference</a></li>
+                </ol>
+            </section>
+
+            <!-- Quick Start Section -->
+            <section id="quickstart" class="section">
+                <div class="breadcrumb">
+                    <a href="#">Documentation</a> / Getting Started / Quick Start Guide
+                </div>
+                
+                <h1>Quick Start Guide</h1>
+                <p>Get up and running with QuantumMycelium Nexus in just a few minutes!</p>
+                
+                <div class="tutorial-step">
+                    <div class="step-number">1</div>
+                    <h3>Access the Platform</h3>
+                    <p>Visit our platform at <strong>mycelium-ei.io</strong> and explore the available tools:</p>
+                    <ul>
+                        <li><strong>Code Playground:</strong> Write and test Mycelium-EI programs</li>
+                        <li><strong>Circuit Designer:</strong> Create quantum circuits visually</li>
+                        <li><strong>Documentation:</strong> Comprehensive guides and references</li>
+                    </ul>
+                </div>
+                
+                <div class="tutorial-step">
+                    <div class="step-number">2</div>
+                    <h3>Your First Network</h3>
+                    <p>Let's create a simple mycelial network. Copy this code into the playground:</p>
+                    <pre><code><span class="comment">// Your first mycelial network</span>
+<span class="keyword">network</span> <span class="type">HelloWorld</span> {
+    <span class="comment">// Create a starting node</span>
+    <span class="keyword">node</span> <span class="variable">origin</span> = <span class="network">net.create</span>(<span class="string">"spore"</span>, [<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>]);
+    
+    <span class="comment">// Simple growth function</span>
+    <span class="keyword">fn</span> <span class="function">grow</span>() -> [<span class="type">Connection</span>] {
+        <span class="keyword">return</span> <span class="network">create_random_connections</span>(<span class="variable">origin</span>, <span class="number">3</span>);
+    }
+    
+    <span class="comment">// Execute growth</span>
+    <span class="keyword">let</span> <span class="variable">connections</span> = <span class="function">grow</span>();
+    <span class="variable">origin</span>.<span class="function">connect_many</span>(<span class="variable">connections</span>);
+}
+
+<span class="comment">// Run simulation</span>
+<span class="keyword">simulate</span> <span class="type">HelloWorld</span> <span class="keyword">for</span> <span class="number">10</span>.<span class="keyword">steps</span>;</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                
+                <div class="tutorial-step">
+                    <div class="step-number">3</div>
+                    <h3>Add Quantum Enhancement</h3>
+                    <p>Now let's add quantum capabilities to make growth predictions:</p>
+                    <pre><code><span class="keyword">network</span> <span class="type">QuantumGrowth</span> {
+    <span class="keyword">node</span> <span class="variable">origin</span> = <span class="network">net.create</span>(<span class="string">"spore"</span>, [<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>]);
+    
+    <span class="comment">// Quantum-enhanced growth prediction</span>
+    <span class="quantum">quantum</span> <span class="keyword">fn</span> <span class="function">quantum_grow</span>() -> [<span class="type">Connection</span>] {
+        <span class="comment">// Allocate quantum bits</span>
+        <span class="keyword">let</span> <span class="variable">qubits</span> = <span class="quantum">qc.allocate</span>(<span class="number">2</span>);
+        
+        <span class="comment">// Create superposition</span>
+        <span class="quantum">qc.hadamard</span>(<span class="variable">qubits</span>[<span class="number">0</span>]);
+        <span class="quantum">qc.cnot</span>(<span class="variable">qubits</span>[<span class="number">0</span>], <span class="variable">qubits</span>[<span class="number">1</span>]);
+        
+        <span class="comment">// Measure results</span>
+        <span class="keyword">let</span> <span class="variable">results</span> = <span class="quantum">qc.measure_all</span>(<span class="variable">qubits</span>);
+        <span class="keyword">return</span> <span class="network">generate_connections</span>(<span class="variable">origin</span>, <span class="variable">results</span>);
+    }
+    
+    <span class="comment">// Execute quantum growth</span>
+    <span class="keyword">let</span> <span class="variable">quantum_connections</span> = <span class="function">quantum_grow</span>();
+    <span class="variable">origin</span>.<span class="function">connect_many</span>(<span class="variable">quantum_connections</span>);
+    
+    <span class="comment">// Visualize the network</span>
+    <span class="network">viz.render_3d</span>(<span class="type">QuantumGrowth</span>);
+}
+
+<span class="keyword">simulate</span> <span class="type">QuantumGrowth</span> <span class="keyword">for</span> <span class="number">50</span>.<span class="keyword">steps</span>;</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                
+                <div class="tutorial-step">
+                    <div class="step-number">4</div>
+                    <h3>Compile and Run</h3>
+                    <p>Click the "▶️ Compile & Run" button in the playground to:</p>
+                    <ul>
+                        <li>Compile your Mycelium-EI code</li>
+                        <li>Execute the network simulation</li>
+                        <li>View results and visualizations</li>
+                        <li>Analyze network statistics</li>
+                    </ul>
+                </div>
+                
+                <div class="success-box">
+                    <strong>🎉 Congratulations!</strong> You've created your first quantum-enhanced biological network. Explore more examples and tutorials to master the platform.
+                </div>
+                
+                <h2>Next Steps</h2>
+                <ul>
+                    <li><a href="#" onclick="showSection('tutorial-basic')">Complete the Basic Tutorial</a></li>
+                    <li><a href="#" onclick="showSection('language-intro')">Learn the Mycelium-EI Language</a></li>
+                    <li><a href="#" onclick="showSection('api-overview')">Explore the API</a></li>
+                    <li><a href="quantum-demo.html">Try the Quantum Circuit Designer</a></li>
+                </ul>
+            </section>
+            
+            <!-- Language Introduction -->
+            <section id="language-intro" class="section">
+                <div class="breadcrumb">
+                    <a href="#">Documentation</a> / Mycelium-EI Language / Language Introduction
+                </div>
+                
+                <h1>Mycelium-EI Language Introduction</h1>
+                <p>Mycelium-EI (Enhanced Intelligence) is a domain-specific programming language designed for modeling and simulating quantum-enhanced biological networks.</p>
+                
+                <h2>Language Philosophy</h2>
+                <p>Mycelium-EI combines the organic growth patterns of mycelial networks with the computational power of quantum mechanics. The language is designed to be:</p>
+                
+                <ul>
+                    <li><strong>Intuitive:</strong> Natural syntax that mirrors biological concepts</li>
+                    <li><strong>Powerful:</strong> First-class quantum computing support</li>
+                    <li><strong>Expressive:</strong> Rich abstractions for network modeling</li>
+                    <li><strong>Efficient:</strong> Optimized for large-scale simulations</li>
+                </ul>
+                
+                <h2>Core Concepts</h2>
+                
+                <h3>Networks</h3>
+                <p>Everything in Mycelium-EI happens within a <code>network</code>. Networks define the scope and context for biological modeling:</p>
+                
+                <pre><code><span class="keyword">network</span> <span class="type">MyNetwork</span> {
+    <span class="comment">// Network definition</span>
+}</code></pre>
+                
+                <h3>Nodes</h3>
+                <p>Nodes represent individual entities in the network - spores, growth points, or decision centers:</p>
+                
+                <pre><code><span class="keyword">node</span> <span class="variable">origin</span> = <span class="network">net.create</span>(<span class="string">"spore"</span>, [<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>]);
+<span class="keyword">nodes</span> <span class="variable">branches</span> = <span class="network">net.create_grid</span>(<span class="number">5</span>, <span class="number">5</span>);</code></pre>
+                
+                <h3>Quantum Functions</h3>
+                <p>Quantum-enhanced functions provide computational advantages for network operations:</p>
+                
+                <pre><code><span class="quantum">quantum</span> <span class="keyword">fn</span> <span class="function">optimize_path</span>(<span class="variable">start</span>: <span class="type">Node</span>, <span class="variable">end</span>: <span class="type">Node</span>) -> <span class="type">Path</span> {
+    <span class="comment">// Quantum algorithm implementation</span>
+}</code></pre>
+                
+                <h3>Simulation</h3>
+                <p>Execute and visualize network dynamics:</p>
+                
+                <pre><code><span class="keyword">simulate</span> <span class="type">MyNetwork</span> <span class="keyword">for</span> <span class="number">100</span>.<span class="keyword">steps</span>;
+<span class="keyword">simulate</span> <span class="type">MyNetwork</span> <span class="keyword">for</span> <span class="keyword">realtime</span>;</code></pre>
+                
+                <h2>Language Features</h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Type System</td>
+                            <td>Strong typing with biological abstractions</td>
+                            <td><code>Node, Connection, QuantumState</code></td>
+                        </tr>
+                        <tr>
+                            <td>Quantum Integration</td>
+                            <td>Built-in quantum computing operations</td>
+                            <td><code>qc.hadamard(), qc.cnot()</code></td>
+                        </tr>
+                        <tr>
+                            <td>Network Primitives</td>
+                            <td>High-level network operations</td>
+                            <td><code>net.create(), viz.render_3d()</code></td>
+                        </tr>
+                        <tr>
+                            <td>Async Simulation</td>
+                            <td>Non-blocking network evolution</td>
+                            <td><code>simulate for realtime</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h2>Quantum Computing Integration</h2>
+                <p>Mycelium-EI provides seamless integration with quantum computing concepts:</p>
+                
+                <div class="info-box">
+                    <strong>🔬 Quantum Features:</strong>
+                    <ul>
+                        <li>Quantum state management</li>
+                        <li>Gate-level quantum operations</li>
+                        <li>Quantum measurement and decoherence</li>
+                        <li>Hybrid classical-quantum algorithms</li>
+                    </ul>
+                </div>
+                
+                <h3>Example: Bell State Creation</h3>
+                <pre><code><span class="quantum">quantum</span> <span class="keyword">fn</span> <span class="function">create_bell_state</span>() -> <span class="type">QuantumState</span> {
+    <span class="comment">// Allocate 2 qubits</span>
+    <span class="keyword">let</span> <span class="variable">qubits</span> = <span class="quantum">qc.allocate</span>(<span class="number">2</span>);
+    
+    <span class="comment">// Create Bell state |00⟩ + |11⟩</span>
+    <span class="quantum">qc.hadamard</span>(<span class="variable">qubits</span>[<span class="number">0</span>]);
+    <span class="quantum">qc.cnot</span>(<span class="variable">qubits</span>[<span class="number">0</span>], <span class="variable">qubits</span>[<span class="number">1</span>]);
+    
+    <span class="keyword">return</span> <span class="quantum">qc.get_state</span>(<span class="variable">qubits</span>);
+}</code></pre>
+            </section>
+            
+            <!-- API Overview -->
+            <section id="api-overview" class="section">
+                <div class="breadcrumb">
+                    <a href="#">Documentation</a> / API Reference / API Overview
+                </div>
+                
+                <h1>API Overview</h1>
+                <p>The QuantumMycelium Nexus API provides programmatic access to our quantum-enhanced biological network modeling platform.</p>
+                
+                <h2>Base URL</h2>
+                <div class="api-endpoint">
+                    <strong>Production:</strong> <code>https://api.mycelium-ei.io</code><br>
+                    <strong>Development:</strong> <code>http://localhost:3000</code>
+                </div>
+                
+                <h2>Authentication</h2>
+                <p>API requests require authentication via JWT tokens. You can obtain tokens through:</p>
+                <ul>
+                    <li>GitHub OAuth integration</li>
+                    <li>Anonymous sessions (limited access)</li>
+                </ul>
+                
+                <div class="api-endpoint">
+                    <span class="method post">POST</span> <code>/api/auth/github</code>
+                    <p>Authenticate using GitHub OAuth code</p>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="method post">POST</span> <code>/api/auth/session</code>
+                    <p>Create anonymous session for basic access</p>
+                </div>
+                
+                <h2>Main API Categories</h2>
+                
+                <h3>🔬 Quantum Simulation</h3>
+                <p>Simulate quantum circuits and states:</p>
+                <div class="api-endpoint">
+                    <span class="method post">POST</span> <code>/api/quantum/simulate</code>
+                    <p>Execute quantum circuit simulation with specified gates and qubits</p>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="method post">POST</span> <code>/api/quantum/bell-state</code>
+                    <p>Create and analyze Bell states for entanglement studies</p>
+                </div>
+                
+                <h3>🧬 Mycelium-EI Compiler</h3>
+                <p>Compile and execute Mycelium-EI programs:</p>
+                <div class="api-endpoint">
+                    <span class="method post">POST</span> <code>/api/mycelium/compile</code>
+                    <p>Compile Mycelium-EI source code to executable format</p>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="method get">GET</span> <code>/api/mycelium/examples</code>
+                    <p>Retrieve curated code examples and templates</p>
+                </div>
+                
+                <h3>🔗 Circuit Management</h3>
+                <p>Save, share, and manage quantum circuits:</p>
+                <div class="api-endpoint">
+                    <span class="method post">POST</span> <code>/api/circuits</code>
+                    <p>Save quantum circuit with metadata and sharing options</p>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="method get">GET</span> <code>/api/circuits</code>
+                    <p>Retrieve user's saved circuits or public circuit library</p>
+                </div>
+                
+                <h3>🌐 Network Simulation</h3>
+                <p>Advanced biological network modeling:</p>
+                <div class="api-endpoint">
+                    <span class="method post">POST</span> <code>/api/simulation/mycelium</code>
+                    <p>Execute compiled Mycelium-EI network simulations</p>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="method post">POST</span> <code>/api/simulation/quantum-network</code>
+                    <p>Run quantum-enhanced biological network simulations</p>
+                </div>
+                
+                <h2>Request/Response Format</h2>
+                <p>All API requests and responses use JSON format:</p>
+                
+                <h3>Standard Request</h3>
+                <pre><code>{
+  <span class="string">"data"</span>: {
+    <span class="comment">// Request parameters</span>
+  },
+  <span class="string">"metadata"</span>: {
+    <span class="string">"timestamp"</span>: <span class="string">"2024-01-15T10:30:00Z"</span>,
+    <span class="string">"client_version"</span>: <span class="string">"1.0.0"</span>
+  }
+}</code></pre>
+                
+                <h3>Standard Response</h3>
+                <pre><code>{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"data"</span>: {
+    <span class="comment">// Response data</span>
+  },
+  <span class="string">"metadata"</span>: {
+    <span class="string">"execution_time"</span>: <span class="number">150</span>,
+    <span class="string">"timestamp"</span>: <span class="string">"2024-01-15T10:30:01Z"</span>
+  }
+}</code></pre>
+                
+                <h2>Rate Limits</h2>
+                <div class="warning-box">
+                    <strong>⚠️ Rate Limiting:</strong>
+                    <ul>
+                        <li><strong>Anonymous users:</strong> 100 requests per hour</li>
+                        <li><strong>Authenticated users:</strong> 1000 requests per hour</li>
+                        <li><strong>Premium users:</strong> 10000 requests per hour</li>
+                    </ul>
+                </div>
+                
+                <h2>Error Handling</h2>
+                <p>API errors follow standard HTTP status codes:</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status Code</th>
+                            <th>Meaning</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>400</td>
+                            <td>Bad Request</td>
+                            <td>Invalid request parameters or format</td>
+                        </tr>
+                        <tr>
+                            <td>401</td>
+                            <td>Unauthorized</td>
+                            <td>Missing or invalid authentication token</td>
+                        </tr>
+                        <tr>
+                            <td>429</td>
+                            <td>Too Many Requests</td>
+                            <td>Rate limit exceeded</td>
+                        </tr>
+                        <tr>
+                            <td>500</td>
+                            <td>Internal Server Error</td>
+                            <td>Server-side processing error</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            
+            <!-- Basic Tutorial -->
+            <section id="tutorial-basic" class="section">
+                <div class="breadcrumb">
+                    <a href="#">Documentation</a> / Tutorials / Basic Network Creation
+                </div>
+                
+                <h1>Tutorial: Basic Network Creation</h1>
+                <p>Learn to create your first biological network using Mycelium-EI. This tutorial covers fundamental concepts and practical examples.</p>
+                
+                <h2>Learning Objectives</h2>
+                <ul>
+                    <li>Understand network and node concepts</li>
+                    <li>Create dynamic network structures</li>
+                    <li>Implement basic growth algorithms</li>
+                    <li>Visualize network evolution</li>
+                </ul>
+                
+                <div class="tutorial-step">
+                    <div class="step-number">1</div>
+                    <h3>Create Your First Network</h3>
+                    <p>Every Mycelium-EI program starts with defining a network. Networks are containers for nodes and their interactions:</p>
+                    
+                    <pre><code><span class="keyword">network</span> <span class="type">MyFirstNetwork</span> {
+    <span class="comment">// Network contents go here</span>
+}</code></pre>
+                    
+                    <div class="info-box">
+                        <strong>💡 Best Practice:</strong> Use descriptive network names that reflect their purpose, like "ForestGrowth" or "SupplyChain".
+                    </div>
+                </div>
+                
+                <div class="tutorial-step">
+                    <div class="step-number">2</div>
+                    <h3>Add Network Nodes</h3>
+                    <p>Nodes represent entities in your network. Let's create some initial nodes:</p>
+                    
+                    <pre><code><span class="keyword">network</span> <span class="type">GrowthDemo</span> {
+    <span class="comment">// Create origin node at coordinates [0, 0, 0]</span>
+    <span class="keyword">node</span> <span class="variable">origin</span> = <span class="network">net.create</span>(<span class="string">"spore"</span>, [<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>]);
+    
+    <span class="comment">// Create additional nodes</span>
+    <span class="keyword">node</span> <span class="variable">branch1</span> = <span class="network">net.create</span>(<span class="string">"growth_tip"</span>, [<span class="number">5.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>]);
+    <span class="keyword">node</span> <span class="variable">branch2</span> = <span class="network">net.create</span>(<span class="string">"growth_tip"</span>, [<span class="number">0.0</span>, <span class="number">5.0</span>, <span class="number">0.0</span>]);
+    
+    <span class="comment">// Create multiple nodes at once</span>
+    <span class="keyword">nodes</span> <span class="variable">grid_nodes</span> = <span class="network">net.create_grid</span>(<span class="number">3</span>, <span class="number">3</span>, <span class="keyword">spacing</span>: <span class="number">2.0</span>);
+}</code></pre>
+                </div>
+                
+                <div class="tutorial-step">
+                    <div class="step-number">3</div>
+                    <h3>Implement Growth Logic</h3>
+                    <p>Add functions to control how your network grows and evolves:</p>
+                    
+                    <pre><code><span class="keyword">network</span> <span class="type">SmartGrowth</span> {
+    <span class="keyword">node</span> <span class="variable">origin</span> = <span class="network">net.create</span>(<span class="string">"spore"</span>, [<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>]);
+    
+    <span class="comment">// Simple growth function</span>
+    <span class="keyword">fn</span> <span class="function">expand_network</span>(<span class="variable">center</span>: <span class="type">Node</span>, <span class="variable">radius</span>: <span class="type">Float</span>) -> [<span class="type">Node</span>] {
+        <span class="keyword">let</span> <span class="variable">new_nodes</span> = [];
+        
+        <span class="comment">// Create nodes in a circle around center</span>
+        <span class="keyword">for</span> <span class="variable">angle</span> <span class="keyword">in</span> <span class="number">0</span>..<span class="number">360</span> <span class="keyword">step</span> <span class="number">60</span> {
+            <span class="keyword">let</span> <span class="variable">x</span> = <span class="variable">center</span>.<span class="variable">x</span> + <span class="variable">radius</span> * <span class="function">cos</span>(<span class="variable">angle</span>);
+            <span class="keyword">let</span> <span class="variable">y</span> = <span class="variable">center</span>.<span class="variable">y</span> + <span class="variable">radius</span> * <span class="function">sin</span>(<span class="variable">angle</span>);
+            
+            <span class="keyword">let</span> <span class="variable">new_node</span> = <span class="network">net.create</span>(<span class="string">"branch"</span>, [<span class="variable">x</span>, <span class="variable">y</span>, <span class="number">0.0</span>]);
+            <span class="variable">new_nodes</span>.<span class="function">push</span>(<span class="variable">new_node</span>);
+        }
+        
+        <span class="keyword">return</span> <span class="variable">new_nodes</span>;
+    }
+    
+    <span class="comment">// Execute growth</span>
+    <span class="keyword">let</span> <span class="variable">first_ring</span> = <span class="function">expand_network</span>(<span class="variable">origin</span>, <span class="number">3.0</span>);
+    <span class="keyword">let</span> <span class="variable">second_ring</span> = <span class="function">expand_network</span>(<span class="variable">origin</span>, <span class="number">6.0</span>);
+    
+    <span class="comment">// Connect nodes</span>
+    <span class="variable">origin</span>.<span class="function">connect_to</span>(<span class="variable">first_ring</span>);
+    <span class="keyword">for</span> <span class="variable">node</span> <span class="keyword">in</span> <span class="variable">first_ring</span> {
+        <span class="variable">node</span>.<span class="function">connect_to_nearest</span>(<span class="variable">second_ring</span>, <span class="number">2</span>);
+    }
+}</code></pre>
+                </div>
+                
+                <div class="tutorial-step">
+                    <div class="step-number">4</div>
+                    <h3>Add Network Dynamics</h3>
+                    <p>Make your network respond to environmental conditions:</p>
+                    
+                    <pre><code><span class="keyword">network</span> <span class="type">AdaptiveNetwork</span> {
+    <span class="keyword">node</span> <span class="variable">origin</span> = <span class="network">net.create</span>(<span class="string">"spore"</span>, [<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>]);
+    
+    <span class="comment">// Environmental parameters</span>
+    <span class="keyword">let</span> <span class="variable">nutrients</span> = <span class="network">env.create_gradient</span>(<span class="string">"nutrients"</span>, [<span class="number">10.0</span>, <span class="number">10.0</span>], <span class="number">5.0</span>);
+    <span class="keyword">let</span> <span class="variable">light</span> = <span class="network">env.create_source</span>(<span class="string">"light"</span>, [<span class="number">0.0</span>, <span class="number">15.0</span>]);
+    
+    <span class="comment">// Adaptive growth function</span>
+    <span class="keyword">fn</span> <span class="function">adaptive_growth</span>(<span class="variable">node</span>: <span class="type">Node</span>) -> [<span class="type">Connection</span>] {
+        <span class="keyword">let</span> <span class="variable">nutrient_level</span> = <span class="variable">nutrients</span>.<span class="function">sample_at</span>(<span class="variable">node</span>.<span class="variable">position</span>);
+        <span class="keyword">let</span> <span class="variable">light_level</span> = <span class="variable">light</span>.<span class="function">intensity_at</span>(<span class="variable">node</span>.<span class="variable">position</span>);
+        
+        <span class="comment">// Grow toward favorable conditions</span>
+        <span class="keyword">if</span> <span class="variable">nutrient_level</span> > <span class="number">0.7</span> {
+            <span class="keyword">return</span> <span class="network">create_radial_connections</span>(<span class="variable">node</span>, <span class="number">3</span>);
+        } <span class="keyword">else</span> <span class="keyword">if</span> <span class="variable">light_level</span> > <span class="number">0.5</span> {
+            <span class="keyword">return</span> <span class="network">create_directed_connection</span>(<span class="variable">node</span>, <span class="variable">light</span>.<span class="variable">position</span>);
+        } <span class="keyword">else</span> {
+            <span class="keyword">return</span> []; <span class="comment">// No growth in poor conditions</span>
+        }
+    }
+    
+    <span class="comment">// Apply adaptive growth to origin</span>
+    <span class="keyword">let</span> <span class="variable">connections</span> = <span class="function">adaptive_growth</span>(<span class="variable">origin</span>);
+    <span class="variable">origin</span>.<span class="function">connect_many</span>(<span class="variable">connections</span>);
+}</code></pre>
+                </div>
+                
+                <div class="tutorial-step">
+                    <div class="step-number">5</div>
+                    <h3>Visualize and Simulate</h3>
+                    <p>Execute your network and see the results:</p>
+                    
+                    <pre><code><span class="keyword">network</span> <span class="type">CompleteExample</span> {
+    <span class="comment">// ... (previous network definition)</span>
+    
+    <span class="comment">// Add visualization</span>
+    <span class="network">viz.set_style</span>(<span class="string">"organic"</span>);
+    <span class="network">viz.show_connections</span>(<span class="keyword">true</span>);
+    <span class="network">viz.show_flow</span>(<span class="keyword">true</span>);
+    
+    <span class="comment">// Render 3D visualization</span>
+    <span class="network">viz.render_3d</span>(<span class="type">CompleteExample</span>);
+}
+
+<span class="comment">// Run simulation for 100 time steps</span>
+<span class="keyword">simulate</span> <span class="type">CompleteExample</span> <span class="keyword">for</span> <span class="number">100</span>.<span class="keyword">steps</span>;
+
+<span class="comment">// Or run in real-time mode</span>
+<span class="comment">// simulate CompleteExample for realtime;</span></code></pre>
+                </div>
+                
+                <div class="success-box">
+                    <strong>🎉 Congratulations!</strong> You've created a complete biological network with adaptive behavior. Your network can now:
+                    <ul>
+                        <li>Create and position nodes dynamically</li>
+                        <li>Form connections based on environmental conditions</li>
+                        <li>Visualize network structure and growth</li>
+                        <li>Simulate realistic biological behaviors</li>
+                    </ul>
+                </div>
+                
+                <h2>Key Takeaways</h2>
+                <ul>
+                    <li><strong>Networks</strong> are containers for biological modeling</li>
+                    <li><strong>Nodes</strong> represent entities with spatial positions</li>
+                    <li><strong>Functions</strong> define network behavior and growth rules</li>
+                    <li><strong>Environmental factors</strong> can influence network development</li>
+                    <li><strong>Visualization</strong> helps understand network dynamics</li>
+                </ul>
+                
+                <h2>Next Steps</h2>
+                <ul>
+                    <li><a href="#" onclick="showSection('tutorial-quantum')">Add Quantum Enhancement</a></li>
+                    <li><a href="#" onclick="showSection('tutorial-optimization')">Learn Resource Optimization</a></li>
+                    <li><a href="#" onclick="showSection('tutorial-visualization')">Advanced Visualization</a></li>
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Documentation functionality
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show target section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            const navItem = document.querySelector(`[data-section="${sectionId}"]`);
+            if (navItem) {
+                navItem.classList.add('active');
+            }
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+        
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.parentElement.querySelector('code');
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'Copied!';
+                button.style.background = 'rgba(158, 206, 106, 0.3)';
+                
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.style.background = '';
+                }, 2000);
+            });
+        }
+        
+        // Search functionality
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            const sections = document.querySelectorAll('.section');
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            if (query === '') {
+                // Show all nav items
+                navItems.forEach(item => item.style.display = 'block');
+                return;
+            }
+            
+            // Filter nav items based on search
+            navItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                const sectionId = item.dataset.section;
+                const section = document.getElementById(sectionId);
+                const sectionContent = section ? section.textContent.toLowerCase() : '';
+                
+                if (text.includes(query) || sectionContent.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+        
+        // Navigation click handlers
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sectionId = this.dataset.section;
+                showSection(sectionId);
+            });
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show overview section by default
+            showSection('overview');
+        });
+    </script>
+    
+    <script src="js/sharing.js"></script>
+</body>
+</html>

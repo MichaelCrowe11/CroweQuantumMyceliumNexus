@@ -1,0 +1,40 @@
+# QuantumMycelium Nexus - Railway Deployment Commands
+# Copy and paste these commands one by one in your terminal
+
+# Step 1: Navigate to deployment directory
+cd C:\Users\micha\CroweQuantumMyceliumNexus\railway-deployment
+
+# Step 2: Login to Railway (opens browser)
+railway login
+
+# Step 3: Initialize Railway project
+railway init
+
+# Step 4: Set Coinbase Commerce variables
+railway variables set COINBASE_COMMERCE_API_KEY="Sw3+wuhe84CgNRToB+CmS716P0mxOWi+/Wsh/XKIexams8P6XVa4M2gfKvZ5KrEmDmboYnoEl0Mds/JNjzGHfg=="
+railway variables set COINBASE_WEBHOOK_SECRET="pUd5Z0yx9dJo4o6NIn4Ox4Idvv"
+
+# Step 5: Set application variables
+railway variables set FRONTEND_URL="https://mycelium-ei.io"
+railway variables set NODE_ENV="production"
+railway variables set PORT="3000"
+railway variables set API_RATE_LIMIT="100"
+railway variables set MAX_QUBITS="10"
+railway variables set MAX_SIMULATION_STEPS="10000"
+railway variables set LOG_LEVEL="info"
+railway variables set ALLOWED_ORIGINS="https://mycelium-ei.io,https://www.mycelium-ei.io"
+
+# Step 6: Set placeholder Supabase variables (update with real values later)
+railway variables set SUPABASE_URL="https://your-project.supabase.co"
+railway variables set SUPABASE_ANON_KEY="your_anon_key"
+railway variables set SUPABASE_SERVICE_ROLE_KEY="your_service_role_key"
+railway variables set JWT_SECRET="your_secret_jwt_key"
+
+# Step 7: Deploy to Railway
+railway up
+
+# Step 8: Get deployment URL
+railway status
+
+# Step 9: Open deployed app
+railway open

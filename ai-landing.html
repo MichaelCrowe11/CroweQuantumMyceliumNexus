@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Quantum Tutor - Learn Quantum Computing in Minutes, Not Years</title>
+    <meta name="description" content="Ask AI anything about quantum computing and get working code instantly. From beginner to expert in record time.">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="AI Quantum Tutor - Learn Quantum Computing with AI">
+    <meta property="og:description" content="Revolutionary AI teaches quantum computing with working code examples">
+    <meta property="og:image" content="https://via.placeholder.com/1200x630/667eea/ffffff?text=AI+Quantum+Tutor">
+    <meta property="og:url" content="https://michaelcrowe11.github.io/CroweQuantumMyceliumNexus/ai-landing.html">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="white" opacity="0.1"/><circle cx="80" cy="40" r="1" fill="white" opacity="0.15"/><circle cx="40" cy="80" r="1" fill="white" opacity="0.1"/></svg>');
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .hero-content {
+            max-width: 1000px;
+            padding: 2rem;
+            z-index: 1;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .highlight {
+            background: linear-gradient(45deg, #ffd89b 0%, #19547b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        .demo-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: left;
+        }
+
+        .demo-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: none;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .demo-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .demo-output {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            border-left: 4px solid #ffd89b;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 216, 155, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 216, 155, 0.6);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 5rem 2rem;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #333;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .feature:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        /* Proof Section */
+        .proof {
+            padding: 5rem 2rem;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+        }
+
+        .proof-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .proof-item {
+            text-align: center;
+        }
+
+        .proof-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffd89b;
+            display: block;
+        }
+
+        .proof-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 5rem 2rem;
+            background: white;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 2rem auto;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .pricing-card.featured {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured::before {
+            content: 'MOST POPULAR';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #667eea;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-period {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .plan-features li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        /* Social Proof */
+        .testimonials {
+            padding: 5rem 2rem;
+            background: #f8f9fa;
+        }
+
+        .testimonial {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .testimonial-text {
+            font-size: 1.1rem;
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        /* Footer */
+        .footer {
+            background: #1a1a2e;
+            color: white;
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .tagline {
+                font-size: 1.1rem;
+            }
+            
+            .demo-box {
+                padding: 1rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        /* Interactive Elements */
+        .typing-animation {
+            border-right: 2px solid #ffd89b;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { border-color: #ffd89b; }
+            51%, 100% { border-color: transparent; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Learn Quantum Computing with <span class="highlight">AI</span><br>in Minutes, Not Years</h1>
+            <p class="tagline">Ask AI anything about quantum computing and get working code instantly. Revolutionary AI tutor makes quantum concepts crystal clear.</p>
+            
+            <div class="demo-box">
+                <input type="text" class="demo-input" placeholder="Ask AI: How do I create quantum entanglement?" id="demoInput">
+                <div class="demo-output" id="demoOutput">
+                    <strong>🤖 AI Quantum Tutor:</strong> Entanglement creates a quantum connection between particles...<br><br>
+                    <strong>📋 Working Code:</strong><br>
+                    <code>let qubits = qc.allocate(2);<br>
+                    qc.hadamard(qubits[0]); // Create superposition<br>
+                    qc.cnot(qubits[0], qubits[1]); // Create entanglement<br>
+                    let bell_state = qc.measure_all(qubits);</code><br><br>
+                    <strong>⚡ Simulation Results:</strong> Bell state created successfully!
+                </div>
+            </div>
+
+            <div class="cta-buttons">
+                <a href="#pricing" class="btn btn-primary pulse">🚀 Start Learning - $29/month</a>
+                <button class="btn btn-secondary" onclick="tryDemo()">🧬 Try Free Demo</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Why Learn Quantum Computing with AI?</h2>
+            
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Instant Understanding</h3>
+                    <p>Ask questions in plain English and get explanations tailored to your level - beginner, intermediate, or expert.</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Working Code</h3>
+                    <p>Every explanation comes with actual quantum circuits and code that you can run immediately on real quantum computers.</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Personalized Learning</h3>
+                    <p>AI adapts to your learning style and pace, providing custom exercises and projects based on your interests.</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">🔬</div>
+                    <h3>Real Quantum Hardware</h3>
+                    <p>Test your circuits on actual IBM quantum computers, not just simulators. Experience real quantum computing.</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Cutting-Edge Algorithms</h3>
+                    <p>Learn Grover's search, Shor's factoring, VQE, QAOA and more with step-by-step AI guidance.</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Quantum-Bio Networks</h3>
+                    <p>Unique Mycelium-EI language for modeling biological networks with quantum enhancement.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Proof Section -->
+    <section class="proof">
+        <div class="container">
+            <h2 class="section-title">Join the Quantum Revolution</h2>
+            <div class="proof-grid">
+                <div class="proof-item">
+                    <span class="proof-number">1000+</span>
+                    <span class="proof-label">Students Learning</span>
+                </div>
+                <div class="proof-item">
+                    <span class="proof-number">50+</span>
+                    <span class="proof-label">Universities Using</span>
+                </div>
+                <div class="proof-item">
+                    <span class="proof-number">95%</span>
+                    <span class="proof-label">Success Rate</span>
+                </div>
+                <div class="proof-item">
+                    <span class="proof-number">24/7</span>
+                    <span class="proof-label">AI Availability</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="container">
+            <h2 class="section-title">What Students Are Saying</h2>
+            
+            <div class="testimonial">
+                <p class="testimonial-text">"I went from complete beginner to running my own quantum algorithms in just 2 weeks. The AI tutor explains everything so clearly!"</p>
+                <p class="testimonial-author">- Sarah Chen, Physics Student at MIT</p>
+            </div>
+            
+            <div class="testimonial">
+                <p class="testimonial-text">"This platform saved me months of struggling with textbooks. The AI gives me working code for every concept."</p>
+                <p class="testimonial-author">- Dr. Marcus Johnson, Quantum Researcher</p>
+            </div>
+            
+            <div class="testimonial">
+                <p class="testimonial-text">"Finally, quantum computing that makes sense! The AI breaks down complex algorithms into bite-sized pieces."</p>
+                <p class="testimonial-author">- Alex Rivera, Software Engineer</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <h2 class="section-title">Start Learning Today</h2>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="plan-name">Free Trial</div>
+                    <div class="plan-price">$0</div>
+                    <div class="plan-period">7 days free</div>
+                    <ul class="plan-features">
+                        <li>✅ 5 AI questions per day</li>
+                        <li>✅ Basic quantum circuits</li>
+                        <li>✅ Community support</li>
+                        <li>❌ Real quantum hardware</li>
+                        <li>❌ Advanced algorithms</li>
+                    </ul>
+                    <a href="#" class="btn btn-secondary" onclick="startTrial()">Start Free Trial</a>
+                </div>
+                
+                <div class="pricing-card featured">
+                    <div class="plan-name">Quantum Pro</div>
+                    <div class="plan-price">$29</div>
+                    <div class="plan-period">per month</div>
+                    <ul class="plan-features">
+                        <li>✅ Unlimited AI questions</li>
+                        <li>✅ All quantum algorithms</li>
+                        <li>✅ Real IBM quantum hardware</li>
+                        <li>✅ Mycelium-EI language</li>
+                        <li>✅ Priority support</li>
+                        <li>✅ Custom learning paths</li>
+                    </ul>
+                    <a href="#" class="btn btn-primary" onclick="selectPlan('pro')">Choose Pro Plan</a>
+                </div>
+                
+                <div class="pricing-card">
+                    <div class="plan-name">Enterprise</div>
+                    <div class="plan-price">$199</div>
+                    <div class="plan-period">per month</div>
+                    <ul class="plan-features">
+                        <li>✅ Everything in Pro</li>
+                        <li>✅ Team management</li>
+                        <li>✅ Custom algorithms</li>
+                        <li>✅ White-label solutions</li>
+                        <li>✅ Dedicated support</li>
+                        <li>✅ SLA guarantee</li>
+                    </ul>
+                    <a href="#" class="btn btn-secondary" onclick="contactSales()">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="docs.html">Documentation</a>
+                <a href="pricing.html">Pricing</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <p>&copy; 2024 QuantumMycelium Nexus. All rights reserved. | Powered by AI 🧬</p>
+        </div>
+    </footer>
+
+    <script>
+        // Demo functionality
+        const demoQuestions = [
+            {
+                question: "How do I create quantum entanglement?",
+                answer: "Entanglement creates a quantum connection between particles where measuring one instantly affects the other...\n\n📋 Working Code:\nlet qubits = qc.allocate(2);\nqc.hadamard(qubits[0]);\nqc.cnot(qubits[0], qubits[1]);\n\n⚡ Result: Bell state with 50% |00⟩ + 50% |11⟩"
+            },
+            {
+                question: "Show me Grover's search algorithm",
+                answer: "Grover's algorithm searches unsorted databases quadratically faster than classical computers...\n\n📋 Working Code:\n// Initialize superposition\nfor (let i = 0; i < qubits; i++) {\n  qc.hadamard(i);\n}\n// Apply oracle + diffusion\n\n⚡ Result: 85% probability of finding marked item"
+            },
+            {
+                question: "What is quantum superposition?",
+                answer: "Superposition allows quantum bits to exist in multiple states simultaneously, like a coin spinning in the air...\n\n📋 Working Code:\nlet qubit = qc.allocate(1);\nqc.hadamard(qubit[0]);\n// Now qubit is 50% |0⟩ + 50% |1⟩\n\n⚡ Result: Equal probability of measuring 0 or 1"
+            }
+        ];
+
+        let currentDemo = 0;
+
+        function tryDemo() {
+            const input = document.getElementById('demoInput');
+            const output = document.getElementById('demoOutput');
+            
+            const demo = demoQuestions[currentDemo % demoQuestions.length];
+            
+            // Type out question
+            input.value = '';
+            let i = 0;
+            const typeQuestion = setInterval(() => {
+                input.value += demo.question[i];
+                i++;
+                if (i >= demo.question.length) {
+                    clearInterval(typeQuestion);
+                    
+                    // Show answer after delay
+                    setTimeout(() => {
+                        output.innerHTML = `<strong>🤖 AI Quantum Tutor:</strong><br>${demo.answer}`;
+                        currentDemo++;
+                    }, 1000);
+                }
+            }, 50);
+        }
+
+        function startTrial() {
+            // Track event
+            gtag('event', 'start_trial', {
+                'event_category': 'engagement',
+                'event_label': 'free_trial'
+            });
+            
+            window.location.href = 'signup.html?plan=trial';
+        }
+
+        function selectPlan(plan) {
+            // Track event
+            gtag('event', 'select_plan', {
+                'event_category': 'conversion',
+                'event_label': plan
+            });
+            
+            window.location.href = `pricing.html?plan=${plan}`;
+        }
+
+        function contactSales() {
+            // Track event
+            gtag('event', 'contact_sales', {
+                'event_category': 'lead',
+                'event_label': 'enterprise'
+            });
+            
+            window.location.href = 'contact.html?type=enterprise';
+        }
+
+        // Auto-demo on page load
+        setTimeout(() => {
+            tryDemo();
+        }, 3000);
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all feature cards and testimonials
+        document.querySelectorAll('.feature, .testimonial, .pricing-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(50px)';
+            el.style.transition = 'all 0.6s ease-out';
+            observer.observe(el);
+        });
+
+        // Analytics tracking
+        function trackPageView() {
+            if (typeof gtag !== 'undefined') {
+                gtag('config', 'GA_MEASUREMENT_ID', {
+                    page_title: 'AI Quantum Tutor Landing',
+                    page_location: window.location.href
+                });
+            }
+        }
+
+        // Call on page load
+        trackPageView();
+
+        // Track scroll depth
+        let maxScroll = 0;
+        window.addEventListener('scroll', () => {
+            const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+            if (scrollPercent > maxScroll && scrollPercent % 25 === 0) {
+                maxScroll = scrollPercent;
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'scroll', {
+                        'event_category': 'engagement',
+                        'event_label': `${scrollPercent}%`
+                    });
+                }
+            }
+        });
+    </script>
+
+    <!-- Google Analytics (Add your GA4 tracking ID) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
+</body>
+</html>

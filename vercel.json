@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "railway-deployment/server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/railway-deployment/server.js" },
+    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/ai-landing", "destination": "/public/ai-landing.html" },
+    { "source": "/platform-overview", "destination": "/public/platform-overview.html" },
+    { "source": "/quantum-demo", "destination": "/public/quantum-demo.html" },
+    { "source": "/pricing", "destination": "/public/pricing.html" },
+    { "source": "/algorithms", "destination": "/public/algorithms.html" },
+    { "source": "/mycelium-playground", "destination": "/public/mycelium-playground.html" },
+    { "source": "/docs", "destination": "/public/docs.html" },
+    { "source": "/(.*).html", "destination": "/public/$1.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index"
+        }
+      ]
+    }
+  ]
+}

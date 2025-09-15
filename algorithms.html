@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Algorithm Library - QuantumMycelium Nexus</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        
+        header {
+            background: rgba(45, 55, 72, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(226, 232, 240, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.2);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .hero-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: #a0aec0;
+            margin-bottom: 2rem;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .filter-btn {
+            background: rgba(226, 232, 240, 0.1);
+            border: 1px solid rgba(226, 232, 240, 0.2);
+            color: #a0aec0;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        .algorithms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .algorithm-card {
+            background: rgba(45, 55, 72, 0.8);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .algorithm-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .algorithm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .algorithm-title {
+            font-size: 1.3rem;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .algorithm-category {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .algorithm-description {
+            color: #cbd5e0;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .algorithm-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-item {
+            background: rgba(26, 27, 38, 0.5);
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid rgba(226, 232, 240, 0.05);
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            margin-bottom: 0.3rem;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        
+        .difficulty {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .difficulty.beginner { background: rgba(72, 187, 120, 0.2); color: #48bb78; }
+        .difficulty.intermediate { background: rgba(255, 158, 100, 0.2); color: #ff9e64; }
+        .difficulty.advanced { background: rgba(247, 118, 142, 0.2); color: #f7768e; }
+        
+        .algorithm-actions {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            text-align: center;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .action-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .action-secondary {
+            background: rgba(226, 232, 240, 0.1);
+            color: #a0aec0;
+            border: 1px solid rgba(226, 232, 240, 0.2);
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .action-primary:hover {
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .action-secondary:hover {
+            background: rgba(226, 232, 240, 0.15);
+            color: #cbd5e0;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: rgba(45, 55, 72, 0.95);
+            border: 1px solid rgba(226, 232, 240, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 800px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: #a0aec0;
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-close:hover {
+            background: rgba(226, 232, 240, 0.1);
+            color: #e2e8f0;
+        }
+        
+        .code-block {
+            background: rgba(26, 27, 38, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .code-block code {
+            color: #c0caf5;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: #667eea;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(102, 126, 234, 0.3);
+        }
+        
+        .execution-results {
+            background: rgba(26, 27, 38, 0.5);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .result-item {
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.05);
+        }
+        
+        .result-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .result-label {
+            font-size: 0.9rem;
+            color: #a0aec0;
+            margin-bottom: 0.3rem;
+        }
+        
+        .result-value {
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        
+        .search-box {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(26, 27, 38, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.2);
+            border-radius: 25px;
+            padding: 0.8rem 1.5rem;
+            color: #c0caf5;
+            margin-bottom: 2rem;
+        }
+        
+        .search-box::placeholder {
+            color: #565f89;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Syntax highlighting */
+        .keyword { color: #bb9af7; font-weight: 600; }
+        .type { color: #7dcfff; }
+        .function { color: #7aa2f7; }
+        .string { color: #9ece6a; }
+        .number { color: #ff9e64; }
+        .comment { color: #565f89; font-style: italic; }
+        .quantum { color: #f7768e; font-weight: 600; }
+        .network { color: #e0af68; font-weight: 600; }
+        
+        @media (max-width: 768px) {
+            .algorithms-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-controls {
+                justify-content: flex-start;
+            }
+            
+            .algorithm-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .algorithm-actions {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">⚛️ Quantum Algorithm Library</div>
+            <div class="header-nav">
+                <a href="index.html" class="btn btn-secondary">← Home</a>
+                <a href="mycelium-playground.html" class="btn btn-secondary">Playground</a>
+                <a href="docs.html" class="btn btn-secondary">Documentation</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero-section">
+            <h1 class="hero-title">Quantum Algorithm Library</h1>
+            <p class="hero-subtitle">
+                Explore and experiment with cutting-edge quantum algorithms, 
+                from foundational techniques to advanced applications
+            </p>
+            
+            <input type="text" class="search-box" placeholder="Search algorithms..." id="searchBox">
+        </div>
+
+        <div class="filter-controls" id="filterControls">
+            <button class="filter-btn active" data-filter="all">All Algorithms</button>
+            <button class="filter-btn" data-filter="search">Search</button>
+            <button class="filter-btn" data-filter="optimization">Optimization</button>
+            <button class="filter-btn" data-filter="cryptography">Cryptography</button>
+            <button class="filter-btn" data-filter="chemistry">Chemistry</button>
+            <button class="filter-btn" data-filter="fundamental">Fundamental</button>
+            <button class="filter-btn" data-filter="linear_algebra">Linear Algebra</button>
+        </div>
+
+        <div class="algorithms-grid" id="algorithmsGrid">
+            <!-- Algorithm cards will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Algorithm Details Modal -->
+    <div class="modal" id="algorithmModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div id="modalContent">
+                <!-- Modal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let algorithms = [];
+        let filteredAlgorithms = [];
+        let currentFilter = 'all';
+
+        // Algorithm data (would be loaded from API in production)
+        const algorithmData = [
+            {
+                name: "grover",
+                displayName: "Grover's Search Algorithm",
+                description: "Quantum search algorithm for unsorted databases with quadratic speedup over classical methods. Finds target items in O(√N) time.",
+                category: "search",
+                difficulty: "intermediate",
+                qubitsRequired: { min: 2, max: 10, optimal: 4 },
+                quantumAdvantage: "Quadratic speedup",
+                complexityClassical: "O(N)",
+                complexityQuantum: "O(√N)",
+                examples: [
+                    {
+                        title: "2-qubit Search",
+                        description: "Search for |11⟩ in 2-qubit space",
+                        myceliumCode: `network GroverSearch2 {
+    quantum fn oracle_11(qubits: [Qubit]) -> Void {
+        qc.cz(qubits[0], qubits[1]);
+    }
+    
+    quantum fn diffusion(qubits: [Qubit]) -> Void {
+        for qubit in qubits {
+            qc.hadamard(qubit);
+            qc.x(qubit);
+        }
+        qc.cz(qubits[0], qubits[1]);
+        for qubit in qubits {
+            qc.x(qubit);
+            qc.hadamard(qubit);
+        }
+    }
+    
+    quantum fn grover_search() -> [Float] {
+        let qubits = qc.allocate(2);
+        
+        // Initialize superposition
+        for qubit in qubits {
+            qc.hadamard(qubit);
+        }
+        
+        // Grover iteration
+        oracle_11(qubits);
+        diffusion(qubits);
+        
+        return qc.measure_all(qubits);
+    }
+    
+    let results = grover_search();
+    viz.show_probability_distribution(results);
+}`
+                    }
+                ]
+            },
+            {
+                name: "shor",
+                displayName: "Shor's Factoring Algorithm",
+                description: "Quantum algorithm for integer factorization with exponential speedup, threatening current RSA cryptography.",
+                category: "cryptography",
+                difficulty: "advanced",
+                qubitsRequired: { min: 4, max: 20, optimal: 8 },
+                quantumAdvantage: "Exponential speedup",
+                complexityClassical: "exp(O(n^(1/3)))",
+                complexityQuantum: "O(n³)",
+                examples: [
+                    {
+                        title: "Factor 15",
+                        description: "Factor N=15 using quantum period finding",
+                        myceliumCode: `network ShorFactoring {
+    quantum fn quantum_period_finding(a: Int, N: Int) -> Int {
+        let n = ceil(log2(N));
+        let counting_qubits = qc.allocate(2 * n);
+        let work_qubits = qc.allocate(n);
+        
+        // Initialize counting register
+        for qubit in counting_qubits {
+            qc.hadamard(qubit);
+        }
+        
+        // Controlled modular exponentiation
+        controlled_mod_exp(counting_qubits, work_qubits, a, N);
+        
+        // Quantum Fourier Transform
+        qft_inverse(counting_qubits);
+        
+        let measurement = qc.measure_all(counting_qubits);
+        return extract_period(measurement, a, N);
+    }
+    
+    let N = 15;
+    let a = 7;
+    let period = quantum_period_finding(a, N);
+    let factors = classical_post_processing(period, a, N);
+    
+    viz.show_factorization(N, factors);
+}`
+                    }
+                ]
+            },
+            {
+                name: "qaoa",
+                displayName: "Quantum Approximate Optimization Algorithm",
+                description: "Variational quantum algorithm for combinatorial optimization problems using alternating operator sequences.",
+                category: "optimization",
+                difficulty: "advanced",
+                qubitsRequired: { min: 2, max: 16, optimal: 6 },
+                quantumAdvantage: "Potential advantage for NP-hard problems",
+                complexityClassical: "Exponential (NP-hard)",
+                complexityQuantum: "Polynomial with good approximation",
+                examples: [
+                    {
+                        title: "Max-Cut Problem",
+                        description: "Find maximum cut in a graph using QAOA",
+                        myceliumCode: `network MaxCutQAOA {
+    quantum fn problem_hamiltonian(qubits: [Qubit], edges: [[Int, Int]], gamma: Float) -> Void {
+        for edge in edges {
+            let [i, j] = edge;
+            qc.rzz(gamma, qubits[i], qubits[j]);
+        }
+    }
+    
+    quantum fn mixer_hamiltonian(qubits: [Qubit], beta: Float) -> Void {
+        for qubit in qubits {
+            qc.rx(2 * beta, qubit);
+        }
+    }
+    
+    quantum fn qaoa_circuit(qubits: [Qubit], params: [[Float]], edges: [[Int, Int]]) -> [Float] {
+        // Initialize superposition
+        for qubit in qubits {
+            qc.hadamard(qubit);
+        }
+        
+        // QAOA layers
+        for layer in params {
+            let [gamma, beta] = layer;
+            problem_hamiltonian(qubits, edges, gamma);
+            mixer_hamiltonian(qubits, beta);
+        }
+        
+        return qc.measure_all(qubits);
+    }
+    
+    // 4-node graph optimization
+    let edges = [[0,1], [1,2], [2,3], [3,0], [0,2]];
+    let qubits = qc.allocate(4);
+    let params = [[PI/4, PI/8], [PI/3, PI/6]];
+    
+    let result = qaoa_circuit(qubits, params, edges);
+    viz.show_graph_cut(edges, result);
+}`
+                    }
+                ]
+            },
+            {
+                name: "vqe",
+                displayName: "Variational Quantum Eigensolver",
+                description: "Find ground state energies of quantum systems, particularly useful for quantum chemistry applications.",
+                category: "chemistry",
+                difficulty: "advanced",
+                qubitsRequired: { min: 2, max: 12, optimal: 4 },
+                quantumAdvantage: "Exponential scaling advantage",
+                complexityClassical: "Exponential in system size",
+                complexityQuantum: "Polynomial with quantum speedup",
+                examples: [
+                    {
+                        title: "H2 Molecule",
+                        description: "Find ground state energy of hydrogen molecule",
+                        myceliumCode: `network H2_VQE {
+    quantum fn ansatz(qubits: [Qubit], params: [Float]) -> Void {
+        // UCCSD-inspired ansatz
+        qc.ry(params[0], qubits[0]);
+        qc.ry(params[1], qubits[1]);
+        qc.cnot(qubits[0], qubits[1]);
+        qc.rz(params[2], qubits[1]);
+        qc.cnot(qubits[0], qubits[1]);
+    }
+    
+    fn hamiltonian_expectation(params: [Float]) -> Float {
+        let qubits = qc.allocate(2);
+        ansatz(qubits, params);
+        
+        // Measure Pauli terms for H2 Hamiltonian
+        let energy = 0.0;
+        energy += -1.0523732 * measure_identity(qubits);
+        energy += 0.39793742 * measure_z(qubits[0]);
+        energy += 0.39793742 * measure_z(qubits[1]);
+        energy += -0.01128010 * measure_zz(qubits);
+        energy += 0.18093119 * measure_xx(qubits);
+        
+        return energy;
+    }
+    
+    // Classical optimization loop
+    let optimal_params = classical_minimize(hamiltonian_expectation, [0.0, 0.0, 0.0]);
+    let ground_energy = hamiltonian_expectation(optimal_params);
+    
+    viz.show_energy_surface(ground_energy, optimal_params);
+}`
+                    }
+                ]
+            },
+            {
+                name: "quantum_walk",
+                displayName: "Quantum Walk",
+                description: "Quantum analog of classical random walks with quadratic speedup for graph traversal and search problems.",
+                category: "graph_algorithms",
+                difficulty: "intermediate",
+                qubitsRequired: { min: 3, max: 10, optimal: 5 },
+                quantumAdvantage: "Quadratic speedup for mixing",
+                complexityClassical: "O(N²) for mixing",
+                complexityQuantum: "O(N) for mixing",
+                examples: [
+                    {
+                        title: "Line Graph Walk",
+                        description: "Quantum walk on a line graph",
+                        myceliumCode: `network LineQuantumWalk {
+    quantum fn coin_operator(coin_qubit: Qubit) -> Void {
+        // Hadamard coin flip
+        qc.hadamard(coin_qubit);
+    }
+    
+    quantum fn shift_operator(coin_qubit: Qubit, position_qubits: [Qubit]) -> Void {
+        // Conditional shift based on coin state
+        for i in 0..position_qubits.length-1 {
+            qc.controlled_increment(coin_qubit, position_qubits, i);
+        }
+    }
+    
+    quantum fn quantum_walk_step(coin_qubit: Qubit, position_qubits: [Qubit]) -> Void {
+        coin_operator(coin_qubit);
+        shift_operator(coin_qubit, position_qubits);
+    }
+    
+    quantum fn simulate_walk(steps: Int) -> [Float] {
+        let coin = qc.allocate(1)[0];
+        let position = qc.allocate(4); // 16 positions
+        
+        // Start at center position
+        qc.x(position[1]); // |0001⟩ = position 1
+        
+        // Perform quantum walk steps
+        for step in 0..steps {
+            quantum_walk_step(coin, position);
+        }
+        
+        return qc.measure_all([coin] + position);
+    }
+    
+    let final_distribution = simulate_walk(10);
+    viz.show_walk_distribution(final_distribution);
+}`
+                    }
+                ]
+            },
+            {
+                name: "hhl",
+                displayName: "HHL Linear System Solver",
+                description: "Solve linear systems Ax = b with exponential speedup for sparse matrices, foundational for many quantum algorithms.",
+                category: "linear_algebra",
+                difficulty: "advanced",
+                qubitsRequired: { min: 4, max: 16, optimal: 8 },
+                quantumAdvantage: "Exponential speedup for sparse systems",
+                complexityClassical: "O(N³) for dense, O(N²) for sparse",
+                complexityQuantum: "O(log(N)s²κ²/ε)",
+                examples: [
+                    {
+                        title: "2x2 System",
+                        description: "Solve simple 2x2 linear system",
+                        myceliumCode: `network HHL_2x2 {
+    quantum fn phase_estimation(matrix_qubits: [Qubit], clock_qubits: [Qubit]) -> Void {
+        // Initialize clock register
+        for qubit in clock_qubits {
+            qc.hadamard(qubit);
+        }
+        
+        // Controlled time evolution
+        for i in 0..clock_qubits.length {
+            let power = 2^i;
+            controlled_time_evolution(clock_qubits[i], matrix_qubits, power);
+        }
+        
+        // Inverse QFT on clock register
+        qft_inverse(clock_qubits);
+    }
+    
+    quantum fn controlled_rotation(clock_qubits: [Qubit], ancilla: Qubit) -> Void {
+        // Rotation conditioned on eigenvalue
+        for i in 0..clock_qubits.length {
+            qc.controlled_ry(clock_qubits[i], ancilla, rotation_angle(i));
+        }
+    }
+    
+    quantum fn hhl_algorithm() -> [Float] {
+        let b_register = qc.allocate(1); // |b⟩ state
+        let clock_register = qc.allocate(3); // eigenvalue register
+        let ancilla = qc.allocate(1)[0]; // success ancilla
+        
+        // Prepare |b⟩ state
+        prepare_b_state(b_register);
+        
+        // Phase estimation to find eigenvalues
+        phase_estimation(b_register, clock_register);
+        
+        // Controlled rotation for λ^(-1)
+        controlled_rotation(clock_register, ancilla);
+        
+        // Uncompute phase estimation
+        phase_estimation_inverse(b_register, clock_register);
+        
+        // Measure ancilla for success
+        return qc.measure_all([ancilla] + b_register);
+    }
+    
+    let solution = hhl_algorithm();
+    viz.show_linear_solution(solution);
+}`
+                    }
+                ]
+            },
+            {
+                name: "phase_estimation",
+                displayName: "Quantum Phase Estimation",
+                description: "Estimate eigenvalues of unitary operators with exponential precision, foundation for many quantum algorithms.",
+                category: "fundamental",
+                difficulty: "intermediate",
+                qubitsRequired: { min: 3, max: 15, optimal: 6 },
+                quantumAdvantage: "Exponential precision scaling",
+                complexityClassical: "Exponential resources needed",
+                complexityQuantum: "Polynomial with exponential precision",
+                examples: [
+                    {
+                        title: "Phase Estimation Demo",
+                        description: "Estimate phase of controlled-U operation",
+                        myceliumCode: `network PhaseEstimationDemo {
+    quantum fn controlled_u_power(control: Qubit, target: [Qubit], power: Int) -> Void {
+        // Apply U^(2^power) controlled on control qubit
+        for rep in 0..power {
+            qc.controlled_u(control, target);
+        }
+    }
+    
+    quantum fn phase_estimation(target: [Qubit], precision: Int) -> [Float] {
+        let counting_qubits = qc.allocate(precision);
+        
+        // Prepare counting register in superposition
+        for qubit in counting_qubits {
+            qc.hadamard(qubit);
+        }
+        
+        // Prepare target in eigenstate
+        prepare_eigenstate(target);
+        
+        // Controlled unitary operations
+        for i in 0..precision {
+            let power = 2^i;
+            controlled_u_power(counting_qubits[i], target, power);
+        }
+        
+        // Inverse Quantum Fourier Transform
+        qft_inverse(counting_qubits);
+        
+        return qc.measure_all(counting_qubits);
+    }
+    
+    let target_qubits = qc.allocate(1);
+    let estimated_phase = phase_estimation(target_qubits, 4);
+    
+    viz.show_phase_estimation(estimated_phase);
+}`
+                    }
+                ]
+            }
+        ];
+
+        // Initialize the page
+        function init() {
+            algorithms = algorithmData;
+            filteredAlgorithms = algorithms;
+            renderAlgorithms();
+            setupEventListeners();
+        }
+
+        // Render algorithm cards
+        function renderAlgorithms() {
+            const grid = document.getElementById('algorithmsGrid');
+            
+            if (filteredAlgorithms.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #a0aec0;">
+                        <h3>No algorithms found</h3>
+                        <p>Try adjusting your search or filter criteria</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = filteredAlgorithms.map(algorithm => `
+                <div class="algorithm-card" data-category="${algorithm.category}" data-name="${algorithm.name}">
+                    <div class="algorithm-header">
+                        <div>
+                            <h3 class="algorithm-title">${algorithm.displayName}</h3>
+                        </div>
+                        <span class="algorithm-category">${algorithm.category}</span>
+                    </div>
+                    
+                    <p class="algorithm-description">${algorithm.description}</p>
+                    
+                    <div class="algorithm-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Difficulty</div>
+                            <div class="stat-value">
+                                <span class="difficulty ${algorithm.difficulty}">${algorithm.difficulty}</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Qubits Required</div>
+                            <div class="stat-value">${algorithm.qubitsRequired.min}-${algorithm.qubitsRequired.max} (opt: ${algorithm.qubitsRequired.optimal})</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Classical Complexity</div>
+                            <div class="stat-value">${algorithm.complexityClassical || 'Various'}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Quantum Advantage</div>
+                            <div class="stat-value">${algorithm.quantumAdvantage}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="algorithm-actions">
+                        <button class="action-btn action-primary" onclick="showAlgorithmDetails('${algorithm.name}')">
+                            📖 View Details
+                        </button>
+                        <button class="action-btn action-secondary" onclick="executeAlgorithm('${algorithm.name}')">
+                            ▶️ Run Example
+                        </button>
+                        <button class="action-btn action-secondary" onclick="copyToPlayground('${algorithm.name}')">
+                            🧬 To Playground
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search functionality
+            document.getElementById('searchBox').addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase();
+                filterAlgorithms(currentFilter, query);
+            });
+
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    currentFilter = this.dataset.filter;
+                    const query = document.getElementById('searchBox').value.toLowerCase();
+                    filterAlgorithms(currentFilter, query);
+                });
+            });
+
+            // Close modal on outside click
+            document.getElementById('algorithmModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
+        }
+
+        // Filter algorithms
+        function filterAlgorithms(category, searchQuery = '') {
+            let filtered = algorithms;
+
+            // Filter by category
+            if (category !== 'all') {
+                filtered = filtered.filter(alg => alg.category === category);
+            }
+
+            // Filter by search query
+            if (searchQuery) {
+                filtered = filtered.filter(alg => 
+                    alg.displayName.toLowerCase().includes(searchQuery) ||
+                    alg.description.toLowerCase().includes(searchQuery) ||
+                    alg.category.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            filteredAlgorithms = filtered;
+            renderAlgorithms();
+        }
+
+        // Show algorithm details modal
+        function showAlgorithmDetails(algorithmName) {
+            const algorithm = algorithms.find(alg => alg.name === algorithmName);
+            if (!algorithm) return;
+
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <h2 style="color: #667eea; margin-bottom: 1rem;">${algorithm.displayName}</h2>
+                <p style="color: #cbd5e0; margin-bottom: 2rem; line-height: 1.6;">${algorithm.description}</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <div class="stat-item">
+                        <div class="stat-label">Category</div>
+                        <div class="stat-value">${algorithm.category}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Difficulty</div>
+                        <div class="stat-value">
+                            <span class="difficulty ${algorithm.difficulty}">${algorithm.difficulty}</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Optimal Qubits</div>
+                        <div class="stat-value">${algorithm.qubitsRequired.optimal}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Quantum Advantage</div>
+                        <div class="stat-value">${algorithm.quantumAdvantage}</div>
+                    </div>
+                </div>
+                
+                <h3 style="color: #7dcfff; margin: 1.5rem 0 1rem;">Example Implementation</h3>
+                ${algorithm.examples.map(example => `
+                    <h4 style="color: #9ece6a; margin-bottom: 0.5rem;">${example.title}</h4>
+                    <p style="color: #a0aec0; margin-bottom: 1rem;">${example.description}</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <code>${syntaxHighlight(example.myceliumCode)}</code>
+                    </div>
+                `).join('')}
+                
+                <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap;">
+                    <button class="action-btn action-primary" onclick="executeAlgorithm('${algorithm.name}')">
+                        ▶️ Run Algorithm
+                    </button>
+                    <button class="action-btn action-secondary" onclick="copyToPlayground('${algorithm.name}')">
+                        🧬 Open in Playground
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('algorithmModal').classList.add('active');
+        }
+
+        // Execute algorithm
+        async function executeAlgorithm(algorithmName) {
+            const algorithm = algorithms.find(alg => alg.name === algorithmName);
+            if (!algorithm) return;
+
+            // Find the button and show loading
+            const buttons = document.querySelectorAll(`button[onclick*="${algorithmName}"]`);
+            buttons.forEach(btn => {
+                if (btn.textContent.includes('Run')) {
+                    btn.innerHTML = '<span class="loading"></span> Running...';
+                    btn.disabled = true;
+                }
+            });
+
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Mock execution results
+                const results = {
+                    algorithm: algorithmName,
+                    success: true,
+                    executionTime: Math.floor(Math.random() * 1000) + 500,
+                    quantumAdvantage: algorithm.quantumAdvantage,
+                    results: generateMockResults(algorithm)
+                };
+
+                showExecutionResults(results);
+
+            } catch (error) {
+                console.error('Algorithm execution error:', error);
+                alert('Algorithm execution failed. Please try again.');
+            } finally {
+                // Restore buttons
+                buttons.forEach(btn => {
+                    if (btn.textContent.includes('Running')) {
+                        btn.innerHTML = '▶️ Run Example';
+                        btn.disabled = false;
+                    }
+                });
+            }
+        }
+
+        // Generate mock execution results
+        function generateMockResults(algorithm) {
+            switch (algorithm.name) {
+                case 'grover':
+                    return {
+                        targetState: '11',
+                        successProbability: 0.95,
+                        iterations: 1,
+                        measurements: { '00': 15, '01': 12, '10': 18, '11': 955 }
+                    };
+                case 'shor':
+                    return {
+                        inputNumber: 15,
+                        factors: [3, 5],
+                        period: 4,
+                        classicalVerification: '3 × 5 = 15 ✓'
+                    };
+                case 'qaoa':
+                    return {
+                        layers: 2,
+                        approximationRatio: 0.78,
+                        optimalCut: 4,
+                        parameters: [{ gamma: 0.785, beta: 0.393 }, { gamma: 1.047, beta: 0.524 }]
+                    };
+                default:
+                    return {
+                        status: 'completed',
+                        quantumAdvantage: algorithm.quantumAdvantage
+                    };
+            }
+        }
+
+        // Show execution results
+        function showExecutionResults(results) {
+            const resultsHtml = `
+                <div class="execution-results">
+                    <h3 style="color: #9ece6a; margin-bottom: 1rem;">🎉 Execution Results</h3>
+                    <div class="result-item">
+                        <div class="result-label">Algorithm</div>
+                        <div class="result-value">${results.algorithm}</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Execution Time</div>
+                        <div class="result-value">${results.executionTime}ms</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Quantum Advantage</div>
+                        <div class="result-value">${results.quantumAdvantage}</div>
+                    </div>
+                    ${Object.entries(results.results).map(([key, value]) => `
+                        <div class="result-item">
+                            <div class="result-label">${key.replace(/([A-Z])/g, ' $1').toLowerCase()}</div>
+                            <div class="result-value">${typeof value === 'object' ? JSON.stringify(value, null, 2) : value}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            // Add results to modal if it's open, otherwise show in a new modal
+            const modal = document.getElementById('algorithmModal');
+            if (modal.classList.contains('active')) {
+                document.getElementById('modalContent').insertAdjacentHTML('beforeend', resultsHtml);
+            } else {
+                document.getElementById('modalContent').innerHTML = resultsHtml;
+                modal.classList.add('active');
+            }
+        }
+
+        // Copy to playground
+        function copyToPlayground(algorithmName) {
+            const algorithm = algorithms.find(alg => alg.name === algorithmName);
+            if (!algorithm || !algorithm.examples.length) return;
+
+            const code = algorithm.examples[0].myceliumCode;
+            
+            // Store in localStorage for the playground to pick up
+            localStorage.setItem('playgroundCode', code);
+            localStorage.setItem('playgroundAlgorithm', algorithm.displayName);
+            
+            // Open playground
+            window.open('mycelium-playground.html', '_blank');
+        }
+
+        // Syntax highlighting
+        function syntaxHighlight(code) {
+            return code
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/(\/\/.*$)/gm, '<span class="comment">$1</span>')
+                .replace(/\b(network|node|nodes|let|for|in|if|else|return|fn)\b/g, '<span class="keyword">$1</span>')
+                .replace(/\b(quantum|qc|allocate|hadamard|cnot|measure|measure_all|get_state)\b/g, '<span class="quantum">$1</span>')
+                .replace(/\b(net|create|create_grid|viz|show|render)\b/g, '<span class="network">$1</span>')
+                .replace(/\b(Qubit|Node|Float|Int|Void)\b/g, '<span class="type">$1</span>')
+                .replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, '<span class="function">$1</span>(')
+                .replace(/"([^"]*)"/g, '<span class="string">"$1"</span>')
+                .replace(/\b(\d+\.?\d*)\b/g, '<span class="number">$1</span>');
+        }
+
+        // Copy code to clipboard
+        function copyCode(button) {
+            const codeBlock = button.parentElement.querySelector('code');
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'Copied!';
+                button.style.background = 'rgba(158, 206, 106, 0.3)';
+                
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.style.background = '';
+                }, 2000);
+            });
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('algorithmModal').classList.remove('active');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+    
+    <script src="js/sharing.js"></script>
+</body>
+</html>

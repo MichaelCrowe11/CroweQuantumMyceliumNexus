@@ -1,0 +1,14 @@
+FROM nginx:alpine
+
+# Copy the built frontend
+COPY frontend/build /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Create logs directory
+RUN mkdir -p /var/log/nginx
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,55 +1,109 @@
-# ========================================
-# CROWEQUANTUMMYCELIUMNEXUS ENVIRONMENT SETUP
-# ========================================
-# This script helps configure the .env file with secure secrets
-
 param(
-    [switch]$ValidateKeys = $false,
-    [switch]$GenerateSecrets = $true,
+    [Parameter(Mandatory=$false)]
+    [switch]$Production,
+    
+    [Parameter(Mandatory=$false)]
+    [switch]$SetupOAuth,
+    
+    [Parameter(Mandatory=$false)]
+    [switch]$SetupAnalytics,
+    
+    [Parameter(Mandatory=$false)]
     [switch]$Interactive = $true
 )
 
-Write-Host ""
-Write-Host "=================================================" -ForegroundColor Cyan
-Write-Host "  CROWE QUANTUM MYCELIUM NEXUS ENVIRONMENT SETUP" -ForegroundColor Cyan
-Write-Host "=================================================" -ForegroundColor Cyan
-Write-Host ""
+$ErrorActionPreference = "Stop"
 
-# Check if .env.example exists
-if (-not (Test-Path ".env.example")) {
-    Write-Host "ERROR: .env.example not found!" -ForegroundColor Red
-    Write-Host "Please ensure you're in the project root directory" -ForegroundColor Yellow
-    exit 1
-}
+Write-Host "⚙️  QuantumMycelium Nexus Environment Setup" -ForegroundColor Cyan
+Write-Host "===========================================" -ForegroundColor Cyan
 
-# Function to generate secure random string
-function New-SecureString {
-    param([int]$Length = 32)
-    
-    $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$%^*'
-    $secureString = ''
-    $random = New-Object System.Random
-    
-    for ($i = 0; $i -lt $Length; $i++) {
-        $secureString += $chars[$random.Next(0, $chars.Length)]
+# Environment variables to configure
+$envVars = @{
+    # Database
+    "POSTGRES_PASSWORD" = @{
+        Description = "PostgreSQL database password"
+        Generate = $true
+        Length = 32
+    }
+    "REDIS_PASSWORD" = @{
+        Description = "Redis cache password"  
+        Generate = $true
+        Length = 24
     }
     
-    return $secureString
-}
-
-# Function to generate alphanumeric string (for keys without special chars)
-function New-AlphanumericString {
-    param([int]$Length = 32)
-    
-    $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    $string = ''
-    $random = New-Object System.Random
-    
-    for ($i = 0; $i -lt $Length; $i++) {
-        $string += $chars[$random.Next(0, $chars.Length)]
+    # Monitoring
+    "GRAFANA_ADMIN_PASSWORD" = @{
+        Description = "Grafana admin password"
+        Generate = $true
+        Length = 20
     }
     
-    return $string
+    # Analytics (if enabled)
+    "GOOGLE_ANALYTICS_ID" = @{
+        Description = "Google Analytics tracking ID (GA-XXXXXXXXX-X)"
+        Generate = $false
+        Required = $SetupAnalytics
+    }
+    "SENTRY_DSN" = @{
+        Description = "Sentry error tracking DSN (optional)"
+        Generate = $false
+        Required = $false
+    }
+    
+    # OAuth (if enabled)
+    "GITHUB_CLIENT_ID" = @{
+        Description = "GitHub OAuth App Client ID"
+        Generate = $false
+        Required = $SetupOAuth
+    }
+    "GITHUB_CLIENT_SECRET" = @{
+        Description = "GitHub OAuth App Client Secret"
+        Generate = $false
+        Required = $SetupOAuth
+    }
+    "GOOGLE_CLIENT_ID" = @{
+        Description = "Google OAuth Client ID"
+        Generate = $false
+        Required = $SetupOAuth
+    }
+    "GOOGLE_CLIENT_SECRET" = @{
+        Description = "Google OAuth Client Secret"
+        Generate = $false
+        Required = $SetupOAuth
+    }
+}
+
+# Function to generate secure password
+function New-SecurePassword {
+    param([int]$Length = 24)
+    
+    $chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
+    return -join ((1..$Length) | ForEach-Object { $chars[(Get-Random -Maximum $chars.Length)] })
+}
+
+# Function to check if running in production
+function Test-ProductionEnvironment {
+    return $Production -or $env:NODE_ENV -eq "production" -or $env:ENVIRONMENT -eq "production"
+}
+
+# Function to set environment variable
+function Set-EnvironmentVariable {
+    param(
+        [string]$Name,
+        [string]$Value,
+        [switch]$Persistent
+    )
+    
+    # Set for current session
+    [System.Environment]::SetEnvironmentVariable($Name, $Value, "Process")
+    
+    if ($Persistent) {
+        # Set for current user
+        [System.Environment]::SetEnvironmentVariable($Name, $Value, "User")
+        Write-Host "   ✅ Set $Name (persistent)" -ForegroundColor Green
+    } else {
+        Write-Host "   ✅ Set $Name (session only)" -ForegroundColor Green
+    }
 }
 
 # Check if .env already exists

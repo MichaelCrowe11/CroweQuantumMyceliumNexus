@@ -1,0 +1,135 @@
+# Docker Compose for QuantumMycelium Nexus Platform
+version: '3.8'
+
+services:
+  # Main API Server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - COINBASE_COMMERCE_API_KEY=${COINBASE_COMMERCE_API_KEY}
+      - COINBASE_WEBHOOK_SECRET=${COINBASE_WEBHOOK_SECRET}
+      - IBM_QUANTUM_TOKEN=${IBM_QUANTUM_TOKEN}
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - quantum-network
+    volumes:
+      - quantum-logs:/app/logs
+      - quantum-temp:/app/temp
+    restart: unless-stopped
+
+  # MCP Server for AI Integration
+  mcp-server:
+    build:
+      context: ./mcp-server
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - MCP_PORT=8080
+      - API_BASE_URL=http://api:3000
+      - QUANTUM_ENGINE_ENABLED=true
+    depends_on:
+      - api
+    networks:
+      - quantum-network
+    restart: unless-stopped
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - quantum-network
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-quantum123}
+    restart: unless-stopped
+
+  # PostgreSQL for local development (use Supabase in production)
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=quantum_nexus
+      - POSTGRES_USER=quantum
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-quantum123}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+    networks:
+      - quantum-network
+    restart: unless-stopped
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+      - quantum-logs:/var/log/nginx
+    depends_on:
+      - api
+      - mcp-server
+    networks:
+      - quantum-network
+    restart: unless-stopped
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - quantum-network
+    restart: unless-stopped
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-quantum123}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - quantum-network
+    restart: unless-stopped
+
+networks:
+  quantum-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  postgres-data:
+  prometheus-data:
+  grafana-data:
+  quantum-logs:
+  quantum-temp:

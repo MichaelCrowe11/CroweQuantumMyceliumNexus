@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧬 Quantum Mycelium Nexus - AI-Powered Quantum Computing Platform</title>
+    <meta name="description" content="Learn quantum computing with AI. Build real quantum circuits. Deploy to IBM Quantum. The complete platform for quantum education and research.">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Quantum Mycelium Nexus - AI Quantum Computing Platform">
+    <meta property="og:description" content="Revolutionary AI teaches quantum computing with working code examples">
+    <meta property="og:url" content="https://quantum-mycelium-nexus.vercel.app">
+    <meta property="og:type" content="website">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 15px 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #667eea;
+        }
+        
+        .cta-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .cta-nav:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding-top: 80px;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="white" opacity="0.1"/><circle cx="80" cy="40" r="1" fill="white" opacity="0.15"/><circle cx="40" cy="80" r="1" fill="white" opacity="0.1"/><circle cx="60" cy="20" r="1" fill="white" opacity="0.1"/></svg>');
+            animation: drift 30s infinite linear;
+        }
+        
+        @keyframes drift {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        .hero-content {
+            text-align: center;
+            color: white;
+            z-index: 1;
+            max-width: 900px;
+            padding: 40px 20px;
+        }
+        
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .hero .subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 30px;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 18px 36px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255,255,255,0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .btn-secondary:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-3px);
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 100px 20px;
+            background: #f8fafc;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+        
+        .section-header h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+        
+        .section-header p {
+            font-size: 1.2rem;
+            color: #6b7280;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+        }
+        
+        .feature {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .feature:hover {
+            transform: translateY(-10px);
+        }
+        
+        .feature-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        .feature h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #1f2937;
+        }
+        
+        .feature p {
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+        
+        .feature-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+        
+        .feature-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Demo Section */
+        .demo-section {
+            padding: 100px 20px;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            color: white;
+            text-align: center;
+        }
+        
+        .demo-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .demo-section h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .demo-section p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+        
+        .demo-preview {
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 15px;
+            margin: 40px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .demo-code {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            text-align: left;
+            background: rgba(0,0,0,0.5);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        /* Stats Section */
+        .stats {
+            padding: 80px 20px;
+            background: white;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .stat {
+            padding: 20px;
+        }
+        
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            color: #6b7280;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f2937;
+            color: white;
+            padding: 60px 20px 40px;
+            text-align: center;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        
+        .footer-links a:hover {
+            opacity: 1;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .section-header h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="logo">🧬 Quantum Nexus</a>
+            <ul class="nav-links">
+                <li><a href="platform-overview.html">Platform</a></li>
+                <li><a href="ai-landing.html">AI Tutor</a></li>
+                <li><a href="quantum-demo.html">Demo</a></li>
+                <li><a href="pricing.html">Pricing</a></li>
+                <li><a href="docs.html">Docs</a></li>
+            </ul>
+            <a href="ai-landing.html" class="cta-nav">Try Free</a>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>🧬 Quantum Mycelium Nexus</h1>
+            <p class="subtitle">Learn quantum computing with AI • Build real circuits • Deploy to quantum hardware</p>
+            
+            <div class="hero-buttons">
+                <a href="ai-landing.html" class="btn btn-primary">🧪 Try AI Tutor Free</a>
+                <a href="platform-overview.html" class="btn btn-secondary">🎯 See Complete Platform</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Everything You Need for Quantum Computing</h2>
+                <p>From learning fundamentals to building production quantum applications</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature">
+                    <span class="feature-icon">🧠</span>
+                    <h3>AI Quantum Tutor</h3>
+                    <p>Ask any quantum question in plain English. Get working code examples and real-time explanations.</p>
+                    <a href="ai-landing.html" class="feature-btn">Try AI Tutor</a>
+                </div>
+                
+                <div class="feature">
+                    <span class="feature-icon">⚗️</span>
+                    <h3>Interactive Circuit Designer</h3>
+                    <p>Build quantum circuits visually. Test on simulators and real IBM Quantum hardware.</p>
+                    <a href="quantum-demo.html" class="feature-btn">Build Circuits</a>
+                </div>
+                
+                <div class="feature">
+                    <span class="feature-icon">💡</span>
+                    <h3>Mycelium-EI Language</h3>
+                    <p>Our revolutionary programming language designed specifically for quantum-classical hybrid computing.</p>
+                    <a href="mycelium-playground.html" class="feature-btn">Try Language</a>
+                </div>
+                
+                <div class="feature">
+                    <span class="feature-icon">📚</span>
+                    <h3>Algorithm Library</h3>
+                    <p>Access Grover's, Shor's, VQE, QAOA, and 50+ other quantum algorithms ready to use.</p>
+                    <a href="algorithms.html" class="feature-btn">Browse Algorithms</a>
+                </div>
+                
+                <div class="feature">
+                    <span class="feature-icon">💳</span>
+                    <h3>Enterprise Ready</h3>
+                    <p>Stripe integration, team collaboration, API access, and 99.9% uptime SLA.</p>
+                    <a href="pricing.html" class="feature-btn">View Pricing</a>
+                </div>
+                
+                <div class="feature">
+                    <span class="feature-icon">🚀</span>
+                    <h3>Production Deployment</h3>
+                    <p>Deploy quantum applications to cloud infrastructure with monitoring and scaling.</p>
+                    <a href="docs.html" class="feature-btn">Read Docs</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Demo Section -->
+    <section class="demo-section">
+        <div class="demo-content">
+            <h2>See It In Action</h2>
+            <p>Watch our AI explain quantum entanglement and generate working code</p>
+            
+            <div class="demo-preview">
+                <div class="demo-code">
+<strong>Human:</strong> "How do I create quantum entanglement?"
+
+<strong>AI Tutor:</strong> "I'll show you how to create a Bell state - the simplest form of quantum entanglement!"
+
+<span style="color: #10b981;">// Mycelium-EI Code:</span>
+network bellState {
+    node qubit1 = |0⟩
+    node qubit2 = |0⟩
+    
+    hadamard(qubit1)      // Create superposition
+    cnot(qubit1, qubit2)  // Create entanglement
+    
+    measure(qubit1, qubit2)
+}
+
+<span style="color: #fbbf24;">Result:</span> |00⟩: 50% probability, |11⟩: 50% probability
+<span style="color: #8b5cf6;">Entanglement created!</span> ✨
+                </div>
+                <a href="ai-landing.html#demo" class="btn btn-primary">Try Interactive Demo</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <div class="section-header">
+                <h2>Trusted by Quantum Researchers Worldwide</h2>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat">
+                    <div class="stat-value">10K+</div>
+                    <div class="stat-label">Students Taught</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">50+</div>
+                    <div class="stat-label">Algorithms</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">99.9%</div>
+                    <div class="stat-label">Uptime</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">⚡</div>
+                    <div class="stat-label">Real Quantum Hardware</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="platform-overview.html">Complete Platform</a>
+                <a href="ai-landing.html">AI Tutor</a>
+                <a href="quantum-demo.html">Live Demo</a>
+                <a href="pricing.html">Pricing</a>
+                <a href="docs.html">Documentation</a>
+                <a href="mailto:support@quantumnexus.com">Support</a>
+            </div>
+            <p>&copy; 2024 Quantum Mycelium Nexus. Built with ❤️ for the quantum future.</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+        
+        // Animate stats on scroll
+        const animateStats = () => {
+            const stats = document.querySelectorAll('.stat-value');
+            stats.forEach(stat => {
+                if (stat.textContent.includes('%') || stat.textContent.includes('K')) {
+                    const finalValue = stat.textContent;
+                    const numericValue = parseFloat(finalValue.replace('K', '000'));
+                    if (!isNaN(numericValue) && numericValue < 100) {
+                        let current = 0;
+                        const increment = numericValue / 50;
+                        const timer = setInterval(() => {
+                            current += increment;
+                            if (current >= numericValue) {
+                                stat.textContent = finalValue;
+                                clearInterval(timer);
+                            } else {
+                                const displayValue = finalValue.includes('K') ? 
+                                    (current / 1000).toFixed(1) + 'K+' : 
+                                    current.toFixed(1) + (finalValue.includes('%') ? '%' : '');
+                                stat.textContent = displayValue;
+                            }
+                        }, 30);
+                    }
+                }
+            });
+        };
+        
+        // Intersection Observer for stats animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateStats();
+                    observer.unobserve(entry.target);
+                }
+            });
+        });
+        
+        const statsSection = document.querySelector('.stats');
+        if (statsSection) {
+            observer.observe(statsSection);
+        }
+        
+        // Test API connectivity
+        fetch('/api/health')
+            .then(r => r.json())
+            .then(d => console.log('✅ Platform API Status:', d.status))
+            .catch(e => console.log('⚠️ API:', e.message));
+    </script>
+</body>
+</html>

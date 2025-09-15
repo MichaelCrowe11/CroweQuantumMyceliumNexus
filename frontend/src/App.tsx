@@ -1,143 +1,277 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline, Box } from '@mui/material';
-import { QueryClient, QueryClientProvider } from 'react-query';
-import { HelmetProvider } from 'react-helmet-async';
-import { ErrorBoundary } from 'react-error-boundary';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import GeospatialMap from './components/GeospatialMap';
+import EnvironmentalDashboard from './components/EnvironmentalDashboard';
+import QuantumVisualizer from './components/QuantumVisualizer';
+import MyceliumAnalytics from './components/MyceliumAnalytics';
+import SatelliteMonitor from './components/SatelliteMonitor';
+import './App.css';
 
-import { AppLayout } from './components/Layout/AppLayout';
-import { Dashboard } from './pages/Dashboard/Dashboard';
-import { Networks } from './pages/Networks/Networks';
-import { QuantumCircuits } from './pages/QuantumCircuits/QuantumCircuits';
-import { Computations } from './pages/Computations/Computations';
-import { Monitoring } from './pages/Monitoring/Monitoring';
-import { Settings } from './pages/Settings/Settings';
-import { ErrorFallback } from './components/ErrorBoundary/ErrorFallback';
-
-import { useAppStore } from './store/appStore';
-import { WebSocketProvider } from './providers/WebSocketProvider';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 2,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
-    },
-  },
-});
+interface NavigationItem {
+  id: string;
+  label: string;
+  icon: string;
+  component: React.ComponentType;
+  gradient: string;
+}
 
 const App: React.FC = () => {
-  const { darkMode } = useAppStore();
+  const [activeTab, setActiveTab] = useState('geospatial');
+  const [isLoading, setIsLoading] = useState(true);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'connecting'>('connecting');
 
-  const theme = createTheme({
-    palette: {
-      mode: darkMode ? 'dark' : 'light',
-      primary: {
-        main: '#7c3aed', // Purple for quantum theme
-        light: '#a855f7',
-        dark: '#5b21b6',
-      },
-      secondary: {
-        main: '#059669', // Green for mycelium theme
-        light: '#10b981',
-        dark: '#047857',
-      },
-      background: {
-        default: darkMode ? '#0f172a' : '#f8fafc',
-        paper: darkMode ? '#1e293b' : '#ffffff',
-      },
-      text: {
-        primary: darkMode ? '#f1f5f9' : '#1e293b',
-        secondary: darkMode ? '#94a3b8' : '#64748b',
-      },
+  const navigationItems: NavigationItem[] = [
+    {
+      id: 'geospatial',
+      label: 'Geospatial Analytics',
+      icon: '🌍',
+      component: GeospatialMap,
+      gradient: 'from-cyan-400 to-blue-600'
     },
-    typography: {
-      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-      h1: {
-        fontWeight: 700,
-        fontSize: '2.5rem',
-      },
-      h2: {
-        fontWeight: 600,
-        fontSize: '2rem',
-      },
-      h3: {
-        fontWeight: 600,
-        fontSize: '1.75rem',
-      },
-      h4: {
-        fontWeight: 600,
-        fontSize: '1.5rem',
-      },
-      h5: {
-        fontWeight: 500,
-        fontSize: '1.25rem',
-      },
-      h6: {
-        fontWeight: 500,
-        fontSize: '1.125rem',
-      },
+    {
+      id: 'environmental',
+      label: 'Environmental Monitor',
+      icon: '🌿',
+      component: EnvironmentalDashboard,
+      gradient: 'from-green-400 to-emerald-600'
     },
-    shape: {
-      borderRadius: 12,
+    {
+      id: 'quantum',
+      label: 'Quantum Systems',
+      icon: '⚛️',
+      component: QuantumVisualizer,
+      gradient: 'from-purple-400 to-indigo-600'
     },
-    components: {
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            backgroundImage: 'none',
-            boxShadow: darkMode 
-              ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' 
-              : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-          },
-        },
-      },
-      MuiPaper: {
-        styleOverrides: {
-          root: {
-            backgroundImage: 'none',
-          },
-        },
-      },
-      MuiButton: {
-        styleOverrides: {
-          root: {
-            textTransform: 'none',
-            fontWeight: 500,
-          },
-        },
-      },
+    {
+      id: 'mycelium',
+      label: 'Mycelium Networks',
+      icon: '🍄',
+      component: MyceliumAnalytics,
+      gradient: 'from-orange-400 to-red-600'
     },
-  });
+    {
+      id: 'satellite',
+      label: 'Satellite Monitor',
+      icon: '🛰️',
+      component: SatelliteMonitor,
+      gradient: 'from-pink-400 to-purple-600'
+    }
+  ];
+
+  useEffect(() => {
+    // Simulate initial loading and connection establishment
+    const initializeSystem = async () => {
+      setConnectionStatus('connecting');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setConnectionStatus('connected');
+      setIsLoading(false);
+    };
+
+    initializeSystem();
+  }, []);
+
+  const ActiveComponent = navigationItems.find(item => item.id === activeTab)?.component || GeospatialMap;
+
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-animation">
+          <div className="quantum-loader">
+            <div className="quantum-ring"></div>
+            <div className="quantum-ring"></div>
+            <div className="quantum-ring"></div>
+          </div>
+          <motion.div
+            className="loading-text"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            Initializing CroweQuantumMyceliumNexus
+          </motion.div>
+          <motion.div
+            className="loading-subtitle"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            Establishing quantum connections...
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <ErrorBoundary FallbackComponent={ErrorFallback}>
-            <WebSocketProvider>
-              <Router>
-                <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-                  <AppLayout>
-                    <Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/networks" element={<Networks />} />
-                      <Route path="/quantum-circuits" element={<QuantumCircuits />} />
-                      <Route path="/computations" element={<Computations />} />
-                      <Route path="/monitoring" element={<Monitoring />} />
-                      <Route path="/settings" element={<Settings />} />
-                    </Routes>
-                  </AppLayout>
-                </Box>
-              </Router>
-            </WebSocketProvider>
-          </ErrorBoundary>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </HelmetProvider>
+    <div className="app">
+      {/* Background with animated particles */}
+      <div className="background-layer">
+        <div className="particle-field">
+          {[...Array(50)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="particle"
+              initial={{
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                opacity: 0
+              }}
+              animate={{
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                opacity: [0, 1, 0]
+              }}
+              transition={{
+                duration: Math.random() * 10 + 5,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Header */}
+      <motion.header
+        className="app-header"
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="header-content">
+          <motion.div
+            className="logo-section"
+            whileHover={{ scale: 1.05 }}
+          >
+            <div className="logo-icon">🌌</div>
+            <div className="logo-text">
+              <h1>CroweQuantumMyceliumNexus</h1>
+              <p>Advanced Geospatial & Environmental Intelligence</p>
+            </div>
+          </motion.div>
+
+          <div className="status-indicators">
+            <motion.div
+              className={`connection-status ${connectionStatus}`}
+              animate={{ scale: connectionStatus === 'connected' ? [1, 1.1, 1] : 1 }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <div className="status-dot"></div>
+              <span>{connectionStatus === 'connected' ? 'QUANTUM LINK ACTIVE' : 'CONNECTING...'}</span>
+            </motion.div>
+
+            <div className="system-metrics">
+              <div className="metric">
+                <span className="metric-label">UPTIME</span>
+                <span className="metric-value">99.97%</span>
+              </div>
+              <div className="metric">
+                <span className="metric-label">NODES</span>
+                <span className="metric-value">2,847</span>
+              </div>
+              <div className="metric">
+                <span className="metric-label">LATENCY</span>
+                <span className="metric-value">12ms</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* Navigation */}
+      <motion.nav
+        className="main-navigation"
+        initial={{ x: -300, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+      >
+        <div className="nav-container">
+          {navigationItems.map((item, index) => (
+            <motion.button
+              key={item.id}
+              className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(item.id)}
+              whileHover={{ scale: 1.05, x: 10 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.3 + index * 0.1 }}
+            >
+              <div className="nav-icon">{item.icon}</div>
+              <div className="nav-content">
+                <span className="nav-label">{item.label}</span>
+                <div className={`nav-indicator bg-gradient-to-r ${item.gradient}`}></div>
+              </div>
+              {activeTab === item.id && (
+                <motion.div
+                  className="active-indicator"
+                  layoutId="activeIndicator"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          ))}
+        </div>
+      </motion.nav>
+
+      {/* Main Content */}
+      <main className="main-content">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            className="content-container"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+          >
+            <ActiveComponent />
+          </motion.div>
+        </AnimatePresence>
+      </main>
+
+      {/* Footer Status Bar */}
+      <motion.footer
+        className="status-bar"
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+      >
+        <div className="status-content">
+          <div className="status-left">
+            <div className="status-item">
+              <span className="status-label">SYSTEM:</span>
+              <span className="status-value online">OPERATIONAL</span>
+            </div>
+            <div className="status-item">
+              <span className="status-label">DATA STREAM:</span>
+              <span className="status-value active">ACTIVE</span>
+            </div>
+            <div className="status-item">
+              <span className="status-label">SECURITY:</span>
+              <span className="status-value secure">ENCRYPTED</span>
+            </div>
+          </div>
+
+          <div className="status-center">
+            <motion.div
+              className="data-flow"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <div className="flow-indicator"></div>
+              <span>Real-time Data Flow</span>
+            </motion.div>
+          </div>
+
+          <div className="status-right">
+            <div className="timestamp">
+              {new Date().toLocaleString()} UTC
+            </div>
+          </div>
+        </div>
+      </motion.footer>
+    </div>
   );
 };
 

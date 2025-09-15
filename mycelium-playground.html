@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mycelium-EI Code Playground - QuantumMycelium Nexus</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #e2e8f0;
+        }
+        
+        header {
+            background: rgba(45, 55, 72, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(226, 232, 240, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.2);
+        }
+        
+        .container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            gap: 1rem;
+            padding: 1rem;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .sidebar {
+            background: rgba(45, 55, 72, 0.8);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            height: fit-content;
+        }
+        
+        .main {
+            background: rgba(45, 55, 72, 0.8);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-height: 600px;
+        }
+        
+        .editor-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .editor-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .tab {
+            background: rgba(226, 232, 240, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            background: rgba(102, 126, 234, 0.2);
+            border-bottom-color: #667eea;
+        }
+        
+        .code-editor {
+            flex: 1;
+            background: #1a1b26;
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .code-textarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #c0caf5;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            resize: none;
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            right: 1rem;
+            bottom: 1rem;
+            z-index: 2;
+        }
+        
+        .code-highlight {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            right: 1rem;
+            bottom: 1rem;
+            pointer-events: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            z-index: 1;
+            color: transparent;
+        }
+        
+        .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 1rem;
+            bottom: 1rem;
+            width: 3rem;
+            background: rgba(26, 27, 38, 0.5);
+            border-right: 1px solid rgba(226, 232, 240, 0.1);
+            padding: 0 0.5rem;
+            font-size: 12px;
+            color: #565f89;
+            text-align: right;
+            line-height: 1.6;
+            user-select: none;
+        }
+        
+        /* Mycelium-EI Syntax Highlighting */
+        .keyword { color: #bb9af7; font-weight: 600; }
+        .type { color: #7dcfff; }
+        .function { color: #7aa2f7; }
+        .variable { color: #c0caf5; }
+        .string { color: #9ece6a; }
+        .number { color: #ff9e64; }
+        .comment { color: #565f89; font-style: italic; }
+        .operator { color: #89ddff; }
+        .quantum { color: #f7768e; font-weight: 600; }
+        .network { color: #e0af68; font-weight: 600; }
+        
+        .examples-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        
+        .example-item {
+            background: rgba(226, 232, 240, 0.05);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .example-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+        }
+        
+        .example-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.3rem;
+        }
+        
+        .example-desc {
+            font-size: 0.9rem;
+            color: #a0aec0;
+            line-height: 1.4;
+        }
+        
+        .difficulty {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        
+        .difficulty.beginner { background: rgba(72, 187, 120, 0.2); color: #48bb78; }
+        .difficulty.intermediate { background: rgba(255, 158, 100, 0.2); color: #ff9e64; }
+        .difficulty.advanced { background: rgba(247, 118, 142, 0.2); color: #f7768e; }
+        
+        .output-panel {
+            background: #1a1b26;
+            border-radius: 10px;
+            padding: 1rem;
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .output-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.1);
+        }
+        
+        .output-content {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #c0caf5;
+        }
+        
+        .error { color: #f7768e; }
+        .success { color: #9ece6a; }
+        .info { color: #7dcfff; }
+        .warning { color: #e0af68; }
+        
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .toolbar-left {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .toolbar-right {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #48bb78;
+        }
+        
+        .status-dot.compiling { background: #e0af68; animation: pulse 1s infinite; }
+        .status-dot.error { background: #f7768e; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .network-viz {
+            background: #1a1b26;
+            border-radius: 10px;
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #565f89;
+            font-style: italic;
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <div class="logo">🧬 QuantumMycelium Nexus</div>
+            <span>Mycelium-EI Code Playground</span>
+        </div>
+        <div class="header-controls">
+            <a href="index.html" class="btn btn-secondary">← Home</a>
+            <a href="quantum-demo.html" class="btn btn-secondary">Circuit Designer</a>
+            <a href="algorithms.html" class="btn btn-secondary">Algorithm Library</a>
+            <button class="btn" onclick="loginWithGitHub()">
+                <span>📚</span> Login & Save
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Left Sidebar - Examples -->
+        <div class="sidebar">
+            <h3 style="margin-bottom: 1rem; color: #667eea;">📚 Code Examples</h3>
+            <div class="examples-list" id="examplesList">
+                <!-- Examples will be loaded here -->
+            </div>
+
+            <h3 style="margin: 2rem 0 1rem; color: #667eea;">🎯 Quick Actions</h3>
+            <button class="btn btn-small" onclick="newProgram()" style="width: 100%; margin-bottom: 0.5rem;">
+                ➕ New Program
+            </button>
+            <button class="btn btn-small btn-secondary" onclick="saveProgram()" style="width: 100%; margin-bottom: 0.5rem;">
+                💾 Save Program
+            </button>
+            <button class="btn btn-small btn-secondary" onclick="shareProgram()" style="width: 100%;">
+                🔗 Share Program
+            </button>
+        </div>
+
+        <!-- Main Editor -->
+        <div class="main">
+            <div class="editor-header">
+                <h2 style="color: #667eea;">Mycelium-EI Editor</h2>
+                <div class="status-indicator">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Ready</span>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <div class="editor-tabs">
+                        <div class="tab active" data-tab="code">Code</div>
+                        <div class="tab" data-tab="ast">AST View</div>
+                    </div>
+                </div>
+                <div class="toolbar-right">
+                    <button class="btn btn-small btn-secondary" onclick="formatCode()">🎨 Format</button>
+                    <button class="btn btn-small btn-secondary" onclick="shareCurrentCode()">🚀 Share</button>
+                    <button class="btn btn-small" onclick="compileAndRun()">▶️ Compile & Run</button>
+                </div>
+            </div>
+
+            <div class="editor-container">
+                <div class="code-editor" id="codeEditor">
+                    <div class="line-numbers" id="lineNumbers">1</div>
+                    <div class="code-highlight" id="codeHighlight"></div>
+                    <textarea 
+                        class="code-textarea" 
+                        id="codeTextarea" 
+                        placeholder="// Welcome to Mycelium-EI!
+// Start typing your quantum-enhanced biological network code here...
+
+network HelloWorld {
+    node origin = net.create(&quot;spore&quot;, [0.0, 0.0, 0.0]);
+    
+    quantum fn grow() -&gt; [Connection] {
+        let qubits = qc.allocate(2);
+        qc.hadamard(qubits[0]);
+        qc.cnot(qubits[0], qubits[1]);
+        
+        let results = qc.measure_all(qubits);
+        return generate_connections(origin, results);
+    }
+    
+    simulate HelloWorld for 10.steps;
+}"></textarea>
+                </div>
+                
+                <div class="output-panel">
+                    <div class="output-header">
+                        <h3>Compilation Output</h3>
+                        <button class="btn btn-small btn-secondary" onclick="clearOutput()">Clear</button>
+                    </div>
+                    <div class="output-content" id="outputContent">
+                        <div class="info">Ready to compile your Mycelium-EI code...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar - Analysis & Visualization -->
+        <div class="sidebar">
+            <h3 style="margin-bottom: 1rem; color: #667eea;">📊 Code Analysis</h3>
+            <div id="codeAnalysis">
+                <div style="background: rgba(226, 232, 240, 0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <div style="font-size: 0.9rem; color: #a0aec0; margin-bottom: 0.5rem;">Networks: <span id="networkCount">0</span></div>
+                    <div style="font-size: 0.9rem; color: #a0aec0; margin-bottom: 0.5rem;">Nodes: <span id="nodeCount">0</span></div>
+                    <div style="font-size: 0.9rem; color: #a0aec0; margin-bottom: 0.5rem;">Quantum Functions: <span id="quantumFuncCount">0</span></div>
+                    <div style="font-size: 0.9rem; color: #a0aec0;">Complexity: <span id="complexity">Basic</span></div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 1rem; color: #667eea;">🌐 Network Visualization</h3>
+            <div class="network-viz" id="networkViz">
+                Network visualization will appear here after compilation
+            </div>
+
+            <h3 style="margin: 1.5rem 0 1rem; color: #667eea;">📖 Documentation</h3>
+            <div style="font-size: 0.9rem; color: #a0aec0; line-height: 1.5;">
+                <div style="margin-bottom: 0.8rem;">
+                    <strong style="color: #667eea;">Keywords:</strong><br>
+                    <code style="color: #bb9af7;">network</code>, <code style="color: #bb9af7;">node</code>, <code style="color: #f7768e;">quantum</code>, <code style="color: #bb9af7;">fn</code>, <code style="color: #bb9af7;">simulate</code>
+                </div>
+                <div style="margin-bottom: 0.8rem;">
+                    <strong style="color: #667eea;">Quantum Operations:</strong><br>
+                    <code style="color: #7dcfff;">qc.allocate()</code>, <code style="color: #7dcfff;">qc.hadamard()</code>, <code style="color: #7dcfff;">qc.cnot()</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentCode = '';
+        let compilationResults = null;
+        let isLoggedIn = false;
+
+        // Example programs
+        const examples = [
+            {
+                id: 'basic_network',
+                title: 'Basic Network Growth',
+                description: 'Simple mycelial network with quantum-enhanced growth prediction',
+                difficulty: 'beginner',
+                code: `// Basic mycelial network simulation
+network SimpleGrowth {
+    // Create initial spore node
+    node origin = net.create("spore", [0.0, 0.0, 0.0]);
+    
+    // Quantum function for growth prediction
+    quantum fn predict_growth(current: Node) -> [Connection] {
+        let qubits = qc.allocate(2);
+        qc.hadamard(qubits[0]);
+        qc.cnot(qubits[0], qubits[1]);
+        
+        let results = qc.measure_all(qubits);
+        return generate_connections(current, results);
+    }
+    
+    // Execute simulation
+    let growth_paths = predict_growth(origin);
+    origin.connect_many(growth_paths);
+    
+    // Visualize network
+    viz.render_3d(SimpleGrowth);
+}
+
+// Run simulation
+simulate SimpleGrowth for 10.steps;`
+            },
+            {
+                id: 'bell_state_network',
+                title: 'Entangled Network Nodes',
+                description: 'Demonstrates quantum entanglement in biological networks',
+                difficulty: 'intermediate',
+                code: `// Quantum entangled mycelial network
+network EntangledGrowth {
+    node node_a = net.create("primary", [0.0, 0.0, 0.0]);
+    node node_b = net.create("secondary", [10.0, 0.0, 0.0]);
+    
+    // Create Bell state between nodes
+    quantum fn entangle_nodes(n1: Node, n2: Node) -> QuantumState {
+        let qubits = qc.allocate(2);
+        
+        // Create Bell state |00⟩ + |11⟩
+        qc.hadamard(qubits[0]);
+        qc.cnot(qubits[0], qubits[1]);
+        
+        // Measure and create entangled connection
+        let state = qc.get_state(qubits);
+        return state;
+    }
+    
+    // Entangle the nodes
+    let entangled_state = entangle_nodes(node_a, node_b);
+    
+    // Visualize entanglement
+    viz.render_entanglement(node_a, node_b, entangled_state);
+}
+
+simulate EntangledGrowth for realtime;`
+            },
+            {
+                id: 'optimization_network',
+                title: 'Resource Optimization',
+                description: 'Uses quantum algorithms for optimal resource distribution',
+                difficulty: 'advanced',
+                code: `// Quantum-optimized resource distribution
+network OptimalDistribution {
+    // Create network nodes
+    node hub = net.create("hub", [0.0, 0.0, 0.0]);
+    nodes branches = net.create_grid(3, 3, spacing: 5.0);
+    
+    // QAOA for resource optimization
+    quantum fn optimize_distribution(source: Node, targets: [Node]) -> OptimalPaths {
+        let n_qubits = targets.length;
+        let qubits = qc.allocate(n_qubits);
+        
+        // Initialize superposition
+        for i in 0..n_qubits {
+            qc.hadamard(qubits[i]);
+        }
+        
+        // Apply QAOA layers
+        for layer in 0..3 {
+            // Problem Hamiltonian
+            apply_cost_function(qubits, targets);
+            
+            // Mixer Hamiltonian  
+            for i in 0..n_qubits {
+                qc.rx(qubits[i], PI/4);
+            }
+        }
+        
+        let measurements = qc.measure_all(qubits);
+        return decode_optimal_paths(measurements, source, targets);
+    }
+    
+    // Find optimal distribution
+    let optimal = optimize_distribution(hub, branches);
+    
+    // Apply optimal connections
+    hub.connect_optimal(optimal);
+    
+    // Visualize with efficiency metrics
+    viz.render_with_metrics(OptimalDistribution, optimal);
+}
+
+simulate OptimalDistribution for analysis;`
+            }
+        ];
+
+        // Initialize the playground
+        function init() {
+            loadExamples();
+            setupEditor();
+            setupTabs();
+            
+            // Load default example
+            loadExample(examples[0]);
+        }
+
+        // Load examples into sidebar
+        function loadExamples() {
+            const container = document.getElementById('examplesList');
+            container.innerHTML = examples.map(example => `
+                <div class="example-item" onclick="loadExample(${JSON.stringify(example).replace(/"/g, '&quot;')})">
+                    <div class="example-title">${example.title}</div>
+                    <div class="example-desc">${example.description}</div>
+                    <div class="difficulty ${example.difficulty}">${example.difficulty}</div>
+                </div>
+            `).join('');
+        }
+
+        // Setup code editor
+        function setupEditor() {
+            const textarea = document.getElementById('codeTextarea');
+            const highlight = document.getElementById('codeHighlight');
+            const lineNumbers = document.getElementById('lineNumbers');
+
+            textarea.addEventListener('input', function() {
+                currentCode = this.value;
+                updateSyntaxHighlighting();
+                updateLineNumbers();
+                analyzeCode();
+            });
+
+            textarea.addEventListener('scroll', function() {
+                highlight.scrollTop = this.scrollTop;
+                highlight.scrollLeft = this.scrollLeft;
+                lineNumbers.scrollTop = this.scrollTop;
+            });
+        }
+
+        // Setup tab switching
+        function setupTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const tabType = this.dataset.tab;
+                    switchTab(tabType);
+                });
+            });
+        }
+
+        // Switch between code and AST view
+        function switchTab(tabType) {
+            const editor = document.getElementById('codeEditor');
+            const textarea = document.getElementById('codeTextarea');
+            
+            if (tabType === 'ast') {
+                // Show AST view
+                if (compilationResults && compilationResults.ast) {
+                    textarea.value = JSON.stringify(compilationResults.ast, null, 2);
+                    textarea.readOnly = true;
+                    updateSyntaxHighlighting();
+                } else {
+                    textarea.value = '// Compile your code first to see the AST';
+                    textarea.readOnly = true;
+                }
+            } else {
+                // Show code view
+                textarea.value = currentCode;
+                textarea.readOnly = false;
+                updateSyntaxHighlighting();
+            }
+        }
+
+        // Load an example into the editor
+        function loadExample(example) {
+            currentCode = example.code;
+            document.getElementById('codeTextarea').value = example.code;
+            updateSyntaxHighlighting();
+            updateLineNumbers();
+            analyzeCode();
+            
+            // Clear output
+            clearOutput();
+            addOutput('info', `Loaded example: ${example.title}`);
+        }
+
+        // Update syntax highlighting
+        function updateSyntaxHighlighting() {
+            const code = document.getElementById('codeTextarea').value;
+            const highlighted = syntaxHighlight(code);
+            document.getElementById('codeHighlight').innerHTML = highlighted;
+        }
+
+        // Syntax highlighting for Mycelium-EI
+        function syntaxHighlight(code) {
+            return code
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                // Comments
+                .replace(/(\/\/.*$)/gm, '<span class="comment">$1</span>')
+                // Keywords
+                .replace(/\b(network|node|nodes|let|for|in|if|else|return)\b/g, '<span class="keyword">$1</span>')
+                // Quantum keywords
+                .replace(/\b(quantum|fn|qc|allocate|hadamard|cnot|measure|measure_all|get_state)\b/g, '<span class="quantum">$1</span>')
+                // Network keywords
+                .replace(/\b(net|create|create_grid|connect|connect_many|connect_optimal|simulate|viz|render_3d|render_entanglement|render_with_metrics)\b/g, '<span class="network">$1</span>')
+                // Types
+                .replace(/\b(Node|Connection|QuantumState|OptimalPaths)\b/g, '<span class="type">$1</span>')
+                // Functions
+                .replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, '<span class="function">$1</span>(')
+                // Strings
+                .replace(/"([^"]*)"/g, '<span class="string">"$1"</span>')
+                // Numbers
+                .replace(/\b(\d+\.?\d*)\b/g, '<span class="number">$1</span>')
+                // Operators
+                .replace(/(\+|\-|\*|\/|=|==|!=|<|>|<=|>=|&&|\|\||!)/g, '<span class="operator">$1</span>');
+        }
+
+        // Update line numbers
+        function updateLineNumbers() {
+            const code = document.getElementById('codeTextarea').value;
+            const lines = code.split('\n').length;
+            const lineNumbers = Array.from({ length: lines }, (_, i) => i + 1).join('\n');
+            document.getElementById('lineNumbers').textContent = lineNumbers;
+        }
+
+        // Analyze code for statistics
+        function analyzeCode() {
+            const code = document.getElementById('codeTextarea').value;
+            
+            // Count networks
+            const networkCount = (code.match(/network\s+\w+/g) || []).length;
+            
+            // Count nodes
+            const nodeCount = (code.match(/node\s+\w+/g) || []).length + 
+                            (code.match(/nodes\s+\w+/g) || []).length;
+            
+            // Count quantum functions
+            const quantumFuncCount = (code.match(/quantum\s+fn\s+\w+/g) || []).length;
+            
+            // Determine complexity
+            let complexity = 'Basic';
+            if (quantumFuncCount > 2 || networkCount > 1) complexity = 'Intermediate';
+            if (quantumFuncCount > 5 || nodeCount > 10) complexity = 'Advanced';
+            
+            // Update UI
+            document.getElementById('networkCount').textContent = networkCount;
+            document.getElementById('nodeCount').textContent = nodeCount;
+            document.getElementById('quantumFuncCount').textContent = quantumFuncCount;
+            document.getElementById('complexity').textContent = complexity;
+        }
+
+        // Compile and run the code
+        async function compileAndRun() {
+            const code = document.getElementById('codeTextarea').value;
+            
+            if (!code.trim()) {
+                addOutput('warning', 'Please enter some code to compile');
+                return;
+            }
+            
+            setStatus('compiling', 'Compiling...');
+            clearOutput();
+            addOutput('info', 'Starting compilation...');
+            
+            try {
+                // Send to backend API
+                const response = await fetch('/api/mycelium/compile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    compilationResults = result.result;
+                    addOutput('success', 'Compilation successful!');
+                    addOutput('info', `Networks: ${result.result.analysis.networks}`);
+                    addOutput('info', `Nodes: ${result.result.analysis.totalNodes}`);
+                    addOutput('info', `Quantum Functions: ${result.result.analysis.quantumFunctions}`);
+                    addOutput('info', `Complexity: ${result.result.analysis.complexity}`);
+                    
+                    // Run simulation if needed
+                    if (code.includes('simulate')) {
+                        await runSimulation(code);
+                    }
+                    
+                    setStatus('ready', 'Ready');
+                } else {
+                    addOutput('error', 'Compilation failed: ' + (result.error || 'Unknown error'));
+                    setStatus('error', 'Error');
+                }
+                
+            } catch (error) {
+                console.error('Compilation error:', error);
+                addOutput('error', 'Network error: ' + error.message);
+                setStatus('error', 'Error');
+            }
+        }
+
+        // Run simulation
+        async function runSimulation(code) {
+            addOutput('info', 'Running simulation...');
+            
+            try {
+                const response = await fetch('/api/simulation/mycelium', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        code,
+                        steps: 100,
+                        realtime: false
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    addOutput('success', 'Simulation completed successfully!');
+                    addOutput('info', `Networks simulated: ${result.metadata.networks}`);
+                    addOutput('info', `Simulation steps: ${result.metadata.steps}`);
+                    
+                    // Update visualization
+                    updateNetworkVisualization(result.results);
+                } else {
+                    addOutput('error', 'Simulation failed: ' + (result.error || 'Unknown error'));
+                }
+                
+            } catch (error) {
+                console.error('Simulation error:', error);
+                addOutput('error', 'Simulation network error: ' + error.message);
+            }
+        }
+
+        // Update network visualization
+        function updateNetworkVisualization(results) {
+            const viz = document.getElementById('networkViz');
+            
+            if (results && results.networks && results.networks.length > 0) {
+                const network = results.networks[0];
+                const evolution = network.evolution;
+                const final = evolution[evolution.length - 1];
+                
+                viz.innerHTML = `
+                    <div style="text-align: center; color: #c0caf5;">
+                        <div style="font-size: 1.2rem; margin-bottom: 0.5rem;">🌐 ${network.name}</div>
+                        <div style="font-size: 0.9rem; color: #a0aec0;">
+                            Nodes: ${final.nodeCount}<br>
+                            Connections: ${final.connections}<br>
+                            Coherence: ${(final.quantumCoherence * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                `;
+            } else {
+                viz.innerHTML = 'Network visualization will appear here after compilation';
+            }
+        }
+
+        // Set status indicator
+        function setStatus(type, text) {
+            const dot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            dot.className = `status-dot ${type}`;
+            statusText.textContent = text;
+        }
+
+        // Add output message
+        function addOutput(type, message) {
+            const output = document.getElementById('outputContent');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            output.innerHTML += `
+                <div class="${type}">
+                    <span style="color: #565f89;">[${timestamp}]</span> ${message}
+                </div>
+            `;
+            
+            output.scrollTop = output.scrollHeight;
+        }
+
+        // Clear output
+        function clearOutput() {
+            document.getElementById('outputContent').innerHTML = '';
+        }
+
+        // Format code
+        function formatCode() {
+            addOutput('info', 'Code formatting is not yet implemented');
+        }
+
+        // Create new program
+        function newProgram() {
+            if (confirm('Create a new program? Unsaved changes will be lost.')) {
+                currentCode = '';
+                document.getElementById('codeTextarea').value = '';
+                updateSyntaxHighlighting();
+                updateLineNumbers();
+                analyzeCode();
+                clearOutput();
+                addOutput('info', 'New program created');
+            }
+        }
+
+        // Save program
+        function saveProgram() {
+            if (!isLoggedIn) {
+                addOutput('warning', 'Please login to save programs');
+                return;
+            }
+            
+            addOutput('info', 'Save functionality coming soon');
+        }
+
+        // Share program
+        function shareProgram() {
+            addOutput('info', 'Share functionality coming soon');
+        }
+
+        // Login with GitHub
+        function loginWithGitHub() {
+            addOutput('info', 'GitHub login integration coming soon');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+    
+    <script src="js/sharing.js"></script>
+    <script>
+        // Enhanced playground functionality for sharing
+        function shareCurrentCode() {
+            const code = document.getElementById('codeTextarea').value;
+            const title = 'My Quantum Algorithm';
+            const description = 'Check out this quantum algorithm I created with Mycelium-EI!';
+            
+            const shareableData = socialSharingManager.createShareableCode(code, title, description);
+            
+            // Show share modal with custom content
+            socialSharingManager.showShareModal();
+            
+            // Track code sharing
+            socialSharingManager.trackEvent('code_shared', {
+                codeLength: code.length,
+                hasQuantumFunctions: code.includes('quantum fn'),
+                hasNetworks: code.includes('network ')
+            });
+        }
+        
+        // Load shared code if available
+        document.addEventListener('DOMContentLoaded', function() {
+            const sharedCode = localStorage.getItem('playgroundCode');
+            const sharedAlgorithm = localStorage.getItem('playgroundAlgorithm');
+            
+            if (sharedCode) {
+                document.getElementById('codeTextarea').value = sharedCode;
+                updateSyntaxHighlighting();
+                updateLineNumbers();
+                analyzeCode();
+                
+                if (sharedAlgorithm) {
+                    addOutput('info', `Loaded algorithm: ${sharedAlgorithm}`);
+                }
+                
+                // Clear localStorage
+                localStorage.removeItem('playgroundCode');
+                localStorage.removeItem('playgroundAlgorithm');
+            }
+        });
+    </script>
+</body>
+</html>

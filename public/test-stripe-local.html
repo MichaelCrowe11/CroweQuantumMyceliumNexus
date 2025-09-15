@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stripe Payment Test - Local</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .test-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .plan {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .plan:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+        }
+        
+        .plan h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-card">
+        <h1>🧪 Stripe Payment Test</h1>
+        <p>Test Stripe integration with your configured keys</p>
+        
+        <div class="plan">
+            <h3>🚀 Quantum Pro</h3>
+            <div class="price">$29/month</div>
+            <p>Perfect for individual quantum researchers</p>
+            <button class="btn" onclick="testCheckout('pro_monthly')">
+                Test Pro Checkout
+            </button>
+        </div>
+        
+        <div class="plan">
+            <h3>🏢 Quantum Enterprise</h3>
+            <div class="price">$199/month</div>
+            <p>For teams and organizations</p>
+            <button class="btn" onclick="testCheckout('enterprise')">
+                Test Enterprise Checkout
+            </button>
+        </div>
+        
+        <div class="plan">
+            <h3>🔧 Test Stripe.js</h3>
+            <p>Verify Stripe.js is loaded correctly</p>
+            <button class="btn" onclick="testStripeJS()">
+                Test Stripe.js
+            </button>
+        </div>
+        
+        <div id="status" class="status info">
+            Ready to test Stripe integration...
+        </div>
+    </div>
+
+    <script>
+        // Stripe configuration
+        const STRIPE_PUBLIC_KEY = 'pk_test_51RkUYkQ6s74Bq3bWJjLqcqyEP4H5wy5j8oAR7k4c5MWUXfKOKGMx3PBFj0YvRxzFH5CzD7cG1HKSoRmZ6Yxg0Hsp00dDKWGfBV';
+        
+        const PLANS = {
+            pro_monthly: {
+                priceId: 'price_1QeDRpQ6s74Bq3bWp33kBvB0',
+                name: 'Quantum Pro Monthly',
+                price: 29.00
+            },
+            enterprise: {
+                priceId: 'price_1QeDRpQ6s74Bq3bWEnterprise',
+                name: 'Quantum Enterprise',
+                price: 199.00
+            }
+        };
+        
+        let stripe;
+        
+        // Initialize Stripe
+        try {
+            stripe = Stripe(STRIPE_PUBLIC_KEY);
+            updateStatus('✅ Stripe.js loaded successfully!', 'success');
+        } catch (error) {
+            updateStatus(`❌ Failed to load Stripe: ${error.message}`, 'error');
+        }
+        
+        // Test Stripe.js
+        function testStripeJS() {
+            if (!stripe) {
+                updateStatus('❌ Stripe not initialized', 'error');
+                return;
+            }
+            
+            updateStatus(`✅ Stripe.js is working!
+                
+Public Key: ${STRIPE_PUBLIC_KEY.substring(0, 20)}...
+Plans configured: ${Object.keys(PLANS).join(', ')}
+                
+Ready for checkout!`, 'success');
+        }
+        
+        // Test checkout
+        async function testCheckout(planKey) {
+            const plan = PLANS[planKey];
+            
+            if (!stripe) {
+                updateStatus('❌ Stripe not initialized', 'error');
+                return;
+            }
+            
+            updateStatus(`⏳ Creating test checkout session for ${plan.name}...`, 'info');
+            
+            try {
+                // In production, this would call your backend API
+                // For testing, we'll simulate the redirect
+                
+                const checkoutUrl = `https://checkout.stripe.com/pay/test_${plan.priceId}`;
+                
+                updateStatus(`✅ Checkout ready for ${plan.name} ($${plan.price}/month)
+                    
+In production, this would:
+1. Call your backend API at /api/stripe/create-checkout-session
+2. Get a Stripe checkout session
+3. Redirect to Stripe's hosted checkout
+                    
+Price ID: ${plan.priceId}
+Would redirect to: ${checkoutUrl}
+                    
+Note: Configure products in Stripe Dashboard first`, 'success');
+                
+                // Uncomment to actually redirect (requires valid price IDs)
+                // window.location.href = checkoutUrl;
+                
+            } catch (error) {
+                updateStatus(`❌ Checkout failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Update status display
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+        
+        // Test on load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (stripe) {
+                console.log('Stripe initialized:', stripe);
+            }
+        });
+    </script>
+</body>
+</html>

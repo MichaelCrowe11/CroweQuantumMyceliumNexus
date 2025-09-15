@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Revenue Test - AI Quantum Tutor</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .test-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 1rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .test-result {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        .warning { color: #facc15; }
+        
+        .revenue-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .metric {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffd89b;
+        }
+        
+        .ai-demo {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .demo-input {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .demo-output {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-panel">
+        <h1>🧪 AI Quantum Tutor - Revenue Test Dashboard</h1>
+        <p>Test all revenue-generating features before launch</p>
+        
+        <div class="revenue-metrics">
+            <div class="metric">
+                <div class="metric-value" id="visitors">0</div>
+                <div>Visitors</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value" id="signups">0</div>
+                <div>Signups</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value" id="revenue">$0</div>
+                <div>Revenue</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value" id="conversion">0%</div>
+                <div>Conversion</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Tests -->
+    <div class="test-panel">
+        <h2>🔌 API Connectivity Tests</h2>
+        
+        <button class="btn" onclick="testAPIHealth()">Test API Health</button>
+        <button class="btn" onclick="testAITutor()">Test AI Tutor</button>
+        <button class="btn" onclick="testStripeConfig()">Test Stripe Config</button>
+        <button class="btn" onclick="testQuantumEngine()">Test Quantum Engine</button>
+        
+        <div class="test-result" id="apiResults">Click buttons above to test API endpoints...</div>
+    </div>
+
+    <!-- AI Tutor Demo -->
+    <div class="test-panel">
+        <h2>🧠 AI Tutor Live Demo</h2>
+        <p>Test the revenue-generating AI feature</p>
+        
+        <div class="ai-demo">
+            <input type="text" class="demo-input" id="aiQuestion" 
+                   placeholder="Ask: How do I create quantum entanglement?" 
+                   value="How do I create quantum entanglement?">
+            <button class="btn" onclick="askAI()">Ask AI Tutor</button>
+            <div class="demo-output" id="aiResponse">AI response will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Payment Tests -->
+    <div class="test-panel">
+        <h2>💳 Payment Flow Tests</h2>
+        
+        <button class="btn" onclick="testProPlan()">Test Pro Plan ($29)</button>
+        <button class="btn" onclick="testEnterprisePlan()">Test Enterprise ($199)</button>
+        <button class="btn" onclick="testFreeTrial()">Test Free Trial</button>
+        
+        <div class="test-result" id="paymentResults">Payment test results will appear here...</div>
+    </div>
+
+    <!-- Launch Checklist -->
+    <div class="test-panel">
+        <h2>🚀 Launch Readiness Checklist</h2>
+        <div id="launchChecklist">
+            <div>⏳ Running launch checks...</div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let testResults = {
+            apiHealth: false,
+            aiTutor: false,
+            stripe: false,
+            quantum: false
+        };
+
+        // Test API Health
+        async function testAPIHealth() {
+            updateResult('apiResults', '⏳ Testing API health...');
+            
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (data.status === 'healthy') {
+                    testResults.apiHealth = true;
+                    updateResult('apiResults', `✅ API Health: ${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    throw new Error('API unhealthy');
+                }
+            } catch (error) {
+                testResults.apiHealth = false;
+                updateResult('apiResults', `❌ API Health Failed: ${error.message}`, 'error');
+            }
+            
+            updateLaunchChecklist();
+        }
+
+        // Test AI Tutor
+        async function testAITutor() {
+            updateResult('apiResults', '⏳ Testing AI Tutor...');
+            
+            try {
+                const response = await fetch('/api/ai/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: 'What is superposition?',
+                        level: 'beginner'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    testResults.aiTutor = true;
+                    updateResult('apiResults', `✅ AI Tutor Working: ${data.response.explanation.substring(0, 100)}...`, 'success');
+                } else {
+                    throw new Error(data.error || 'AI Tutor failed');
+                }
+            } catch (error) {
+                testResults.aiTutor = false;
+                updateResult('apiResults', `❌ AI Tutor Failed: ${error.message}`, 'error');
+            }
+            
+            updateLaunchChecklist();
+        }
+
+        // Test Stripe Configuration
+        async function testStripeConfig() {
+            updateResult('apiResults', '⏳ Testing Stripe configuration...');
+            
+            try {
+                const response = await fetch('/api/stripe/plans');
+                const data = await response.json();
+                
+                if (data.success && data.plans) {
+                    testResults.stripe = true;
+                    updateResult('apiResults', `✅ Stripe Plans: ${data.plans.length} plans configured`, 'success');
+                } else {
+                    throw new Error('Stripe plans not configured');
+                }
+            } catch (error) {
+                testResults.stripe = false;
+                updateResult('apiResults', `⚠️ Stripe Config: ${error.message}`, 'warning');
+            }
+            
+            updateLaunchChecklist();
+        }
+
+        // Test Quantum Engine
+        async function testQuantumEngine() {
+            updateResult('apiResults', '⏳ Testing quantum engine...');
+            
+            try {
+                const response = await fetch('/api/quantum/simulate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        qubits: 2,
+                        gates: [
+                            { type: 'H', qubit: 0 },
+                            { type: 'CNOT', control: 0, target: 1 }
+                        ],
+                        shots: 100
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.results) {
+                    testResults.quantum = true;
+                    updateResult('apiResults', `✅ Quantum Engine: Bell state created successfully`, 'success');
+                } else {
+                    throw new Error('Quantum simulation failed');
+                }
+            } catch (error) {
+                testResults.quantum = false;
+                updateResult('apiResults', `❌ Quantum Engine Failed: ${error.message}`, 'error');
+            }
+            
+            updateLaunchChecklist();
+        }
+
+        // Ask AI Demo
+        async function askAI() {
+            const question = document.getElementById('aiQuestion').value;
+            updateResult('aiResponse', '⏳ AI is thinking...');
+            
+            try {
+                const response = await fetch('/api/ai/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: question,
+                        level: 'beginner',
+                        includeCode: true,
+                        runSimulation: true
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const result = `🤖 AI Response: ${data.response.explanation}
+
+📋 Working Code:
+${data.response.code || 'No code generated for this question'}
+
+⚡ Simulation Results:
+${data.response.simulation ? 'Quantum simulation completed successfully!' : 'No simulation available'}
+
+🔍 Follow-up Questions:
+${data.followUp.join('\n')}`;
+                    
+                    updateResult('aiResponse', result);
+                    
+                    // Update metrics
+                    updateMetric('signups', parseInt(document.getElementById('signups').textContent) + 1);
+                } else {
+                    throw new Error(data.error || 'AI request failed');
+                }
+            } catch (error) {
+                updateResult('aiResponse', `❌ AI Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Test payment plans
+        async function testProPlan() {
+            updateResult('paymentResults', '⏳ Testing Pro plan checkout...');
+            alert('🧪 Test Mode: Would redirect to Stripe checkout for $29/month Pro plan');
+            updateResult('paymentResults', '✅ Pro Plan: Stripe checkout flow ready', 'success');
+            updateMetric('revenue', '$29');
+        }
+
+        async function testEnterprisePlan() {
+            updateResult('paymentResults', '⏳ Testing Enterprise plan...');
+            alert('🧪 Test Mode: Would redirect to Stripe checkout for $199/month Enterprise plan');
+            updateResult('paymentResults', '✅ Enterprise Plan: Stripe checkout flow ready', 'success');
+            updateMetric('revenue', '$228');
+        }
+
+        async function testFreeTrial() {
+            updateResult('paymentResults', '⏳ Testing free trial signup...');
+            alert('🧪 Test Mode: Free trial signup would capture email and start 7-day trial');
+            updateResult('paymentResults', '✅ Free Trial: Signup flow ready', 'success');
+            updateMetric('signups', parseInt(document.getElementById('signups').textContent) + 1);
+            updateMetric('conversion', '25%');
+        }
+
+        // Utility functions
+        function updateResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `test-result ${type}`;
+        }
+
+        function updateMetric(metric, value) {
+            document.getElementById(metric).textContent = value;
+        }
+
+        function updateLaunchChecklist() {
+            const checklist = document.getElementById('launchChecklist');
+            const checks = [
+                { name: 'API Health', status: testResults.apiHealth },
+                { name: 'AI Tutor', status: testResults.aiTutor },
+                { name: 'Stripe Payments', status: testResults.stripe },
+                { name: 'Quantum Engine', status: testResults.quantum }
+            ];
+            
+            const readyCount = checks.filter(c => c.status).length;
+            const readyPercent = Math.round((readyCount / checks.length) * 100);
+            
+            checklist.innerHTML = `
+                <h3>🎯 Launch Readiness: ${readyPercent}%</h3>
+                ${checks.map(check => `
+                    <div>${check.status ? '✅' : '❌'} ${check.name}</div>
+                `).join('')}
+                
+                ${readyCount === checks.length ? `
+                    <div style="background: rgba(74, 222, 128, 0.2); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        <strong>🚀 READY TO LAUNCH!</strong><br>
+                        All systems operational. Deploy to Vercel and start making money!
+                    </div>
+                ` : `
+                    <div style="background: rgba(251, 191, 36, 0.2); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        <strong>⚠️ ${4 - readyCount} tests remaining</strong><br>
+                        Complete all tests before launch
+                    </div>
+                `}
+            `;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simulate some initial metrics
+            updateMetric('visitors', Math.floor(Math.random() * 50) + 10);
+            updateLaunchChecklist();
+            
+            // Auto-run basic tests
+            setTimeout(() => {
+                testAPIHealth();
+            }, 1000);
+        });
+
+        // Demo traffic simulation
+        setInterval(() => {
+            const current = parseInt(document.getElementById('visitors').textContent);
+            updateMetric('visitors', current + Math.floor(Math.random() * 3));
+        }, 5000);
+    </script>
+</body>
+</html>

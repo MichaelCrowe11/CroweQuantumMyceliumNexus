@@ -1,307 +1,159 @@
-# 🧬 CroweQuantumMyceliumNexus
+# 🍄 Mycelium-EI (Environmental Intelligence)
 
-> **Unified AI Platform** integrating MyceliumEI ecological intelligence with CroweQuantumNexusAI quantum computing capabilities
+> **Advanced Environmental Intelligence Platform** integrating ecological monitoring, satellite analytics, and quantum computing
 
-[![License](https://img.shields.io/badge/license-Proprietary-blue)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![EPA Compliant](https://img.shields.io/badge/EPA-Compliant-green)](docs/compliance.md)
-[![Quantum Ready](https://img.shields.io/badge/Quantum-Ready-purple)](docs/quantum.md)
+[![Google Cloud](https://img.shields.io/badge/Google_Cloud-Integrated-4285F4)](docs/google.md)
+[![Quantum Ready](https://img.shields.io/badge/Quantum-Enabled-purple)](docs/quantum.md)
 
 ## 🌟 Overview
 
-CroweQuantumMyceliumNexus represents the convergence of two powerful platforms:
-- **MyceliumEI**: Advanced mycological research and environmental monitoring
-- **CroweQuantumNexusAI**: Quantum-enhanced artificial intelligence and predictive modeling
-
-This unified platform leverages quantum computing principles to enhance ecological predictions while maintaining EPA compliance and enterprise-grade security.
-
-## 🏗️ Architecture
-
-```mermaid
-graph TB
-    subgraph "Frontend Layer"
-        UI[Unified Web Interface]
-        Mobile[Mobile Apps]
-    end
-    
-    subgraph "API Gateway"
-        Kong[Kong API Gateway]
-        Auth[Authentication]
-    end
-    
-    subgraph "Application Layer"
-        Mycelium[MyceliumEI Service]
-        Quantum[CroweQuantumNexusAI Service]
-        Orchestrator[Integration Orchestrator]
-    end
-    
-    subgraph "Data Layer"
-        PostgreSQL[(Unified PostgreSQL)]
-        Redis[(Redis Cache)]
-        RabbitMQ[RabbitMQ]
-    end
-    
-    subgraph "Processing Layer"
-        Workers[Background Workers]
-        Pipeline[Data Pipeline]
-        ML[ML Models]
-    end
-    
-    subgraph "Monitoring"
-        Prometheus[Prometheus]
-        Grafana[Grafana]
-        Jaeger[Jaeger Tracing]
-    end
-    
-    UI --> Kong
-    Mobile --> Kong
-    Kong --> Mycelium
-    Kong --> Quantum
-    Kong --> Orchestrator
-    
-    Mycelium --> PostgreSQL
-    Quantum --> PostgreSQL
-    Orchestrator --> Redis
-    
-    Workers --> RabbitMQ
-    Pipeline --> RabbitMQ
-    
-    Prometheus --> Grafana
-```
+**Mycelium-EI** is a cutting-edge environmental intelligence platform that combines:
+- **Ecological Monitoring**: Real-time mycelium network analysis and growth optimization
+- **Satellite Integration**: Live satellite tracking and environmental hotspot detection
+- **Google Cloud Services**: Full integration with Maps, Vision, BigQuery, IoT Core, and more
+- **Quantum Computing**: Advanced predictive modeling using quantum algorithms
+- **AI Analytics**: Machine learning models for contamination detection and yield optimization
 
 ## 🚀 Key Features
 
-### Integrated Capabilities
-- **🍄 Mycological Intelligence**: Real-time fungal growth monitoring and prediction
-- **⚛️ Quantum Computing**: Enhanced pattern recognition and optimization
-- **🌍 Environmental Monitoring**: EPA-compliant data collection and reporting
-- **🤖 AI-Driven Insights**: Advanced predictive models and recommendations
-- **📊 Unified Analytics**: Cross-platform data visualization and analysis
-- **🔒 Enterprise Security**: End-to-end encryption and compliance features
+### Environmental Intelligence
+- 🌍 **Geospatial Analytics** - Satellite imagery and terrain mapping
+- 📡 **Real-time Monitoring** - IoT sensor networks with live data streaming
+- 🛰️ **Satellite Tracking** - LANDSAT, SENTINEL, TERRA-MODIS integration
+- 🔥 **Hotspot Detection** - Environmental anomaly identification
+- 📊 **Predictive Analytics** - AI-powered growth and yield predictions
 
-### Technical Highlights
-- **Microservices Architecture**: Scalable, maintainable service design
-- **Real-time Data Pipeline**: Streaming data processing with Apache Kafka
-- **Quantum-Classical Hybrid**: Seamless integration of quantum and classical computing
-- **Multi-tenant Support**: Isolated environments for different organizations
-- **API-First Design**: RESTful and GraphQL APIs for all services
-- **Cloud-Native**: Kubernetes-ready containerized deployment
+### Mycelium Research
+- 🧬 **Strain Analysis** - Multi-species tracking and optimization
+- 📈 **Growth Monitoring** - Real-time biomass evolution
+- 🌡️ **Environmental Control** - Automated climate management
+- 🔬 **Contamination Detection** - ML-based early warning system
+- 📱 **Mobile Access** - Field research companion app
 
-## 📦 Quick Start
+### Google Cloud Integration
+- 🗺️ **Google Maps** - Geocoding, elevation, and place data
+- 👁️ **Vision API** - Image analysis for lab samples
+- 💾 **BigQuery** - Environmental data analytics
+- ☁️ **Cloud Storage** - Secure data archival
+- 🔥 **Firestore** - Real-time database sync
+- 📨 **Pub/Sub** - Sensor data messaging
+- 🤖 **IoT Core** - Device management
 
-### Prerequisites
-- Windows 10/11 with WSL2
-- Docker Desktop
-- PowerShell 5.1+
-- 16GB RAM minimum
-- 100GB free disk space
+## 🛠️ Technology Stack
 
-### Installation
+- **Frontend**: React 18, TypeScript, Material-UI, Three.js, Mapbox GL
+- **Backend**: Node.js, Express, WebSocket
+- **Database**: Firestore, BigQuery, PostgreSQL
+- **Cloud**: Google Cloud Platform, Fly.io
+- **Quantum**: IBM Quantum, Rigetti, IonQ
+- **Monitoring**: Prometheus, Grafana
 
-1. **Clone the repository**
-```powershell
-git clone https://github.com/crowelogic/CroweQuantumMyceliumNexus.git
-cd CroweQuantumMyceliumNexus
+## 📦 Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/mycelium-ei.git
+cd mycelium-ei
+
+# Install backend dependencies
+cd backend
+npm install
+
+# Install frontend dependencies
+cd ../frontend
+npm install
+
+# Set up environment variables
+cp backend/.env.example backend/.env
+# Edit .env with your Google Cloud credentials
+
+# Start the platform
+npm run start:all
 ```
-
-2. **Configure environment**
-```powershell
-# Generate secure secrets
-./scripts/generate-secrets.ps1
-
-# Customize configuration
-notepad .env.unified
-```
-
-3. **Deploy the platform**
-```powershell
-# Full deployment with monitoring
-./scripts/deploy-unified.ps1 -WithMonitoring -BuildImages
-
-# Or quick deployment (uses pre-built images)
-./scripts/deploy-unified.ps1
-```
-
-4. **Verify deployment**
-```powershell
-# Run health checks
-./scripts/health-check.ps1
-
-# View service status
-docker compose -f docker-compose.unified.yml ps
-```
-
-5. **Access the platform**
-- Web Interface: http://localhost:3000
-- API Gateway: http://localhost:8000
-- Grafana Dashboard: http://localhost:3001
 
 ## 🔧 Configuration
 
-### Environment Variables
-Key configuration options in `.env.unified`:
+### Google Cloud Setup
+1. Create a project in [Google Cloud Console](https://console.cloud.google.com)
+2. Enable required APIs (Maps, Vision, BigQuery, IoT Core, etc.)
+3. Create service account and download credentials
+4. Set `GOOGLE_APPLICATION_CREDENTIALS` in `.env`
+
+### API Keys Required
+- `GOOGLE_MAPS_API_KEY` - For mapping services
+- `GOOGLE_CLOUD_PROJECT` - Your GCP project ID
+
+## 🖥️ CLI Usage
 
 ```bash
-# Core Services
-DOMAIN=nexus.crowelogic.com
-ENVIRONMENT=production
+# Run the Google API CLI
+node google-cli.js
 
-# Features
-QUANTUM_COMPUTE_ENABLED=true
-AI_ENHANCED_PREDICTIONS=true
-EPA_REPORTING_ENABLED=true
-
-# Performance
-MAX_WORKERS=4
-CACHE_TTL=300
-CONNECTION_POOL_SIZE=20
+# Available commands:
+status              # Check API status
+satellite-tracking  # Track satellites
+hotspots           # Get environmental hotspots
+analyze-zone <lat> <lng>  # Analyze location
+geocode <address>   # Get coordinates
 ```
 
-### Service Ports
-| Service | Port | Description |
-|---------|------|-------------|
-| Frontend | 3000 | Web UI |
-| API Gateway | 8000 | Unified API |
-| MyceliumEI | 8100 | Ecological service |
-| QuantumNexus | 9000 | Quantum service |
-| Grafana | 3001 | Monitoring |
-| Prometheus | 9090 | Metrics |
+## 📡 API Endpoints
 
-## 📊 Integration Features
+### Core Services
+- `GET /api/metrics` - System metrics
+- `GET /api/networks` - Mycelium networks
+- `GET /api/quantum` - Quantum computations
+- `GET /api/environmental` - Sensor data
+- `GET /api/analytics` - AI model status
 
-### Data Flow Pipelines
-The platform includes specialized pipelines for data transformation:
+### Google Services
+- `POST /api/google/geocode` - Address geocoding
+- `GET /api/google/satellite/tracking` - Satellite positions
+- `POST /api/google/analyze/zone` - Environmental analysis
+- `GET /api/google/hotspots` - Environmental hotspots
 
-1. **Environmental → Quantum Pipeline**
-   - Converts sensor data to quantum state vectors
-   - Optimizes for quantum processing
+## 🌐 Deployment
 
-2. **Quantum → Growth Pipeline**
-   - Transforms quantum predictions to growth parameters
-   - Generates intervention recommendations
-
-3. **Mycelial → AI Pipeline**
-   - Extracts network topology features
-   - Prepares data for ML models
-
-4. **Compliance Sync Pipeline**
-   - Synchronizes EPA compliance data
-   - Generates unified reports
-
-### API Endpoints
-
-#### MyceliumEI APIs
-```
-GET  /api/v1/environmental/current
-GET  /api/v1/environmental/history
-POST /api/v1/growth/predict
-GET  /api/v1/compliance/report
+### Fly.io Deployment
+```bash
+fly deploy
+fly open
 ```
 
-#### CroweQuantumNexusAI APIs
-```
-POST /api/v2/quantum/compute
-GET  /api/v2/quantum/status
-POST /api/v2/ai/predict
-GET  /api/v2/models/list
+### Docker Deployment
+```bash
+docker build -t mycelium-ei .
+docker run -p 8300:8300 mycelium-ei
 ```
 
-#### Integration APIs
-```
-POST /api/integration/route
-GET  /api/integration/pipelines
-GET  /api/integration/metrics
-POST /api/integration/transform
-```
+## 📊 Monitoring
 
-## 🔐 Security & Compliance
-
-### Security Features
-- **JWT Authentication**: Token-based auth with refresh tokens
-- **Role-Based Access Control**: Granular permissions
-- **End-to-End Encryption**: TLS 1.3 for all communications
-- **Audit Logging**: Complete audit trail for compliance
-- **Security Scanning**: Automated vulnerability detection
-
-### EPA Compliance
-- **7-Year Data Retention**: Automated backup and archival
-- **Audit Trail**: Complete data lineage tracking
-- **Compliance Reporting**: Automated EPA report generation
-- **Data Quality Metrics**: Continuous quality monitoring
-
-## 📈 Monitoring & Observability
-
-### Metrics Collection
-- **Application Metrics**: Response times, error rates, throughput
-- **Infrastructure Metrics**: CPU, memory, disk, network
-- **Business Metrics**: User activity, data processing, compliance
-
-### Dashboards
-Pre-configured Grafana dashboards for:
-- System Overview
-- Application Performance
-- Data Pipeline Status
-- Compliance Metrics
-- Quantum Computing Utilization
-
-### Distributed Tracing
-Jaeger integration for:
-- Request flow visualization
-- Performance bottleneck identification
-- Service dependency mapping
-
-## 🧪 Testing
-
-```powershell
-# Run unit tests
-./scripts/run-tests.ps1 -Unit
-
-# Run integration tests
-./scripts/run-tests.ps1 -Integration
-
-# Run performance tests
-./scripts/run-tests.ps1 -Performance
-
-# Run compliance tests
-./scripts/run-tests.ps1 -Compliance
-```
-
-## 📚 Documentation
-
-- [Architecture Guide](docs/architecture.md)
-- [API Documentation](docs/api.md)
-- [Integration Guide](docs/integration.md)
-- [Deployment Guide](docs/deployment.md)
-- [Security Guide](docs/security.md)
-- [Compliance Guide](docs/compliance.md)
+Access the monitoring dashboard at:
+- **Grafana**: http://localhost:3000
+- **Prometheus**: http://localhost:9090
 
 ## 🤝 Contributing
 
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to this project.
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 📄 License
 
-This project is proprietary software. See [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License - see [LICENSE](LICENSE) file.
 
-## 🏢 About Crowe Logic
+## 🔗 Links
 
-Crowe Logic specializes in advanced AI solutions combining quantum computing with ecological intelligence for next-generation environmental monitoring and optimization.
+- **Live Demo**: https://mycelium-ei.fly.dev
+- **Documentation**: https://docs.mycelium-ei.com
+- **API Reference**: https://api.mycelium-ei.com/docs
+- **Support**: support@mycelium-ei.com
 
-### Contact
-- **Website**: https://crowelogic.com
-- **Email**: support@crowelogic.com
-- **GitHub**: https://github.com/crowelogic
+## 👥 Team
 
-## 🚨 System Status
-
-| Component | Status | Version |
-|-----------|--------|---------|
-| MyceliumEI | ✅ Active | v2.0.0 |
-| CroweQuantumNexusAI | ✅ Active | v1.5.0 |
-| Integration Layer | ✅ Active | v1.0.0 |
-| EPA Compliance | ✅ Compliant | 2025 Standards |
+- **Michael Crowe** - Platform Architect
+- **AI Assistant Claude** - Development Partner
 
 ---
 
-**© 2025 Crowe Logic. All Rights Reserved.**
-
-*Built with quantum intelligence for a sustainable future* 🌍⚛️🍄
+*Mycelium-EI: Growing the future of environmental intelligence* 🌱
