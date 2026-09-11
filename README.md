@@ -1,307 +1,76 @@
-# 🧬 CroweQuantumMyceliumNexus
+# CroweQuantumMyceliumNexus
 
-> **Unified AI Platform** integrating MyceliumEI ecological intelligence with CroweQuantumNexusAI quantum computing capabilities
+Compose, Kubernetes and Helm manifests, an OpenAPI spec and unbuilt Rust, Python and React stubs from a September 2025 sketch of a service that would join mycology sensor data to quantum computing code.
 
-[![License](https://img.shields.io/badge/license-Proprietary-blue)](LICENSE)
-[![EPA Compliant](https://img.shields.io/badge/EPA-Compliant-green)](docs/compliance.md)
-[![Quantum Ready](https://img.shields.io/badge/Quantum-Ready-purple)](docs/quantum.md)
+## Status
 
-## 🌟 Overview
+`archived`
 
-CroweQuantumMyceliumNexus represents the convergence of two powerful platforms:
-- **MyceliumEI**: Advanced mycological research and environmental monitoring
-- **CroweQuantumNexusAI**: Quantum-enhanced artificial intelligence and predictive modeling
+Seven commits between 2025-09-09 and 2025-09-11 (git log). Development stopped on 2025-09-11. The only later activity is a Dependabot pull request from 2026-05-02, left open. Nothing in the repo builds or runs from a real command tried today (see below). The code is kept for reference.
 
-This unified platform leverages quantum computing principles to enhance ecological predictions while maintaining EPA compliance and enterprise-grade security.
+## Install and first run
 
-## 🏗️ Architecture
+Not maintained. No supported install path.
 
-```mermaid
-graph TB
-    subgraph "Frontend Layer"
-        UI[Unified Web Interface]
-        Mobile[Mobile Apps]
-    end
-    
-    subgraph "API Gateway"
-        Kong[Kong API Gateway]
-        Auth[Authentication]
-    end
-    
-    subgraph "Application Layer"
-        Mycelium[MyceliumEI Service]
-        Quantum[CroweQuantumNexusAI Service]
-        Orchestrator[Integration Orchestrator]
-    end
-    
-    subgraph "Data Layer"
-        PostgreSQL[(Unified PostgreSQL)]
-        Redis[(Redis Cache)]
-        RabbitMQ[RabbitMQ]
-    end
-    
-    subgraph "Processing Layer"
-        Workers[Background Workers]
-        Pipeline[Data Pipeline]
-        ML[ML Models]
-    end
-    
-    subgraph "Monitoring"
-        Prometheus[Prometheus]
-        Grafana[Grafana]
-        Jaeger[Jaeger Tracing]
-    end
-    
-    UI --> Kong
-    Mobile --> Kong
-    Kong --> Mycelium
-    Kong --> Quantum
-    Kong --> Orchestrator
-    
-    Mycelium --> PostgreSQL
-    Quantum --> PostgreSQL
-    Orchestrator --> Redis
-    
-    Workers --> RabbitMQ
-    Pipeline --> RabbitMQ
-    
-    Prometheus --> Grafana
+What was tried today, and how each stopped:
+
+```
+$ cargo check --offline --manifest-path integration/mycelium-ei-integration/Cargo.toml
+error: failed to get `mycelium-runtime` as a dependency of package `mycelium-ei-integration v0.1.0`
+  Unable to update /private/tmp/readme-makeover/mycelium-ei-lang/runtime
 ```
 
-## 🚀 Key Features
+The Rust crate depends on `../../../mycelium-ei-lang/{compiler,runtime,stdlib}` and on `../quantum-core` and `../quantum-compute`. None of those directories exist in this repo. `ml-models/` and `tests/` depend on that same crate, so they cannot build either. `ml-models/Cargo.toml` also needs `tch` (PyTorch bindings), which the estate disk rule does not allow installing, and lists binaries at `src/bin/` that are not in the repo.
 
-### Integrated Capabilities
-- **🍄 Mycological Intelligence**: Real-time fungal growth monitoring and prediction
-- **⚛️ Quantum Computing**: Enhanced pattern recognition and optimization
-- **🌍 Environmental Monitoring**: EPA-compliant data collection and reporting
-- **🤖 AI-Driven Insights**: Advanced predictive models and recommendations
-- **📊 Unified Analytics**: Cross-platform data visualization and analysis
-- **🔒 Enterprise Security**: End-to-end encryption and compliance features
-
-### Technical Highlights
-- **Microservices Architecture**: Scalable, maintainable service design
-- **Real-time Data Pipeline**: Streaming data processing with Apache Kafka
-- **Quantum-Classical Hybrid**: Seamless integration of quantum and classical computing
-- **Multi-tenant Support**: Isolated environments for different organizations
-- **API-First Design**: RESTful and GraphQL APIs for all services
-- **Cloud-Native**: Kubernetes-ready containerized deployment
-
-## 📦 Quick Start
-
-### Prerequisites
-- Windows 10/11 with WSL2
-- Docker Desktop
-- PowerShell 5.1+
-- 16GB RAM minimum
-- 100GB free disk space
-
-### Installation
-
-1. **Clone the repository**
-```powershell
-git clone https://github.com/crowelogic/CroweQuantumMyceliumNexus.git
-cd CroweQuantumMyceliumNexus
+```
+$ uv venv /tmp/readme-makeover/cqmn-venv --python 3.12
+$ uv pip install --python /tmp/readme-makeover/cqmn-venv/bin/python ./sdk/python
+FileNotFoundError: [Errno 2] No such file or directory: 'README.md'
 ```
 
-2. **Configure environment**
-```powershell
-# Generate secure secrets
-./scripts/generate-secrets.ps1
+`sdk/python/setup.py` opens a `README.md` beside it that does not exist, so the package cannot build. Its `install_requires` also lists `qiskit`, which was not going to be installed under the disk rule.
 
-# Customize configuration
-notepad .env.unified
+```
+$ curl -sS -o /dev/null -w '%{http_code}' https://nexus.crowelogic.com/
+000
 ```
 
-3. **Deploy the platform**
-```powershell
-# Full deployment with monitoring
-./scripts/deploy-unified.ps1 -WithMonitoring -BuildImages
+The host named as `DOMAIN` in the committed compose env file and in the old README did not answer.
 
-# Or quick deployment (uses pre-built images)
-./scripts/deploy-unified.ps1
-```
+Not tried, and why:
 
-4. **Verify deployment**
-```powershell
-# Run health checks
-./scripts/health-check.ps1
+- `frontend/`: no lockfile, no `src/index.tsx`, no `tsconfig.json`. `react-scripts` cannot start without an entry file, and the estate rule is to install only from a lockfile.
+- `sdk/javascript/`: no lockfile. Not installed.
+- `docker compose -f docker-compose.*.yml up`: Docker Compose is not on this machine, and the four compose files build from directories that are not in the repo (`./MyceliumEI`, `./mycelium`, `./quantum`, `./integration/quantum-core`, `./integration/data-pipeline`, `./crowe-sense`, which is an empty submodule pointer).
+- The 18 PowerShell scripts under `scripts/`: Windows only, and `pwsh` is not on this machine. The three scripts the old README told you to run (`generate-secrets.ps1`, `health-check.ps1`, `run-tests.ps1`) are not in the repo.
+- The `.myc` files under `examples/`: written for the Mycelium-EI language, whose toolchain lives in a different repo.
 
-# View service status
-docker compose -f docker-compose.unified.yml ps
-```
+One thing that did parse today, with Ruby's YAML library: `api/openapi.yaml` is OpenAPI 3.0.3 with 8 paths (`/compute/hybrid`, `/compute/status/{computationId}`, `/networks`, `/networks/{networkId}/simulate`, `/quantum/circuits`, `/quantum/execute`, `/metrics`, `/health`). No server implements them here.
 
-5. **Access the platform**
-- Web Interface: http://localhost:3000
-- API Gateway: http://localhost:8000
-- Grafana Dashboard: http://localhost:3001
+## What runs today
 
-## 🔧 Configuration
+Nothing is maintained. For reference, the repo holds:
 
-### Environment Variables
-Key configuration options in `.env.unified`:
+- Four Docker Compose files (6, 11, 15 and 10 services), a Helm chart with staging and production values, and three Kubernetes manifests.
+- `api/openapi.yaml`, the spec above.
+- Rust sources: an integration crate (5 files), an ML crate (2 files), two quantum circuit files with no `Cargo.toml`, and a test crate with two benches.
+- Python: `integration/orchestrator.py`, `integration/crowe_sense_weather.py`, and a client SDK under `sdk/python/`.
+- TypeScript: one SDK file and seven React components with no entry point.
+- Prometheus and Grafana config under `monitoring/`, and 18 PowerShell deploy scripts.
+- No test was run. The Rust test crate cannot compile.
 
-```bash
-# Core Services
-DOMAIN=nexus.crowelogic.com
-ENVIRONMENT=production
+## Limits
 
-# Features
-QUANTUM_COMPUTE_ENABLED=true
-AI_ENHANCED_PREDICTIONS=true
-EPA_REPORTING_ENABLED=true
+- Two env files besides `.env.example` are committed. The compose stack's env file holds generated passwords and signing keys (database, cache, queue, Grafana, JWT, encryption). Treat every value in it as public and rotate before any reuse. `.env.gcp` names a Google Cloud project, registry and service account. `.gitignore` excludes neither.
+- No ecological, agricultural or environmental result exists in this repo. Nothing here has monitored a fungus, a sensor, or a site.
+- No quantum computation exists in this repo. The "quantum" crates and circuit files were never compiled, and no job output is committed.
+- The old README's EPA compliance badge, "7-Year Data Retention", "System Status: Active" table, TLS, RBAC and audit claims described intent. None is backed by running code here.
+- The old README linked to `docs/architecture.md`, `docs/api.md`, `docs/compliance.md`, `docs/quantum.md`, `CONTRIBUTING.md` and `LICENSE`. None exist. `docs/` has two files: `DNS_CONFIGURATION.md` and `QUICKSTART.md`.
+- `frontend/src/components/Auth/` and `frontend/src/types/auth.ts` sketch a login flow. There is no backend for it in this repo.
+- Not a product. Not for deployment as is.
 
-# Performance
-MAX_WORKERS=4
-CACHE_TTL=300
-CONNECTION_POOL_SIZE=20
-```
+## License and contact
 
-### Service Ports
-| Service | Port | Description |
-|---------|------|-------------|
-| Frontend | 3000 | Web UI |
-| API Gateway | 8000 | Unified API |
-| MyceliumEI | 8100 | Ecological service |
-| QuantumNexus | 9000 | Quantum service |
-| Grafana | 3001 | Monitoring |
-| Prometheus | 9090 | Metrics |
+No license file. The old README pointed at a `LICENSE` that was never added and called the project proprietary; `sdk/javascript/package.json` says MIT for that one folder. Treat the repo as all rights reserved.
 
-## 📊 Integration Features
-
-### Data Flow Pipelines
-The platform includes specialized pipelines for data transformation:
-
-1. **Environmental → Quantum Pipeline**
-   - Converts sensor data to quantum state vectors
-   - Optimizes for quantum processing
-
-2. **Quantum → Growth Pipeline**
-   - Transforms quantum predictions to growth parameters
-   - Generates intervention recommendations
-
-3. **Mycelial → AI Pipeline**
-   - Extracts network topology features
-   - Prepares data for ML models
-
-4. **Compliance Sync Pipeline**
-   - Synchronizes EPA compliance data
-   - Generates unified reports
-
-### API Endpoints
-
-#### MyceliumEI APIs
-```
-GET  /api/v1/environmental/current
-GET  /api/v1/environmental/history
-POST /api/v1/growth/predict
-GET  /api/v1/compliance/report
-```
-
-#### CroweQuantumNexusAI APIs
-```
-POST /api/v2/quantum/compute
-GET  /api/v2/quantum/status
-POST /api/v2/ai/predict
-GET  /api/v2/models/list
-```
-
-#### Integration APIs
-```
-POST /api/integration/route
-GET  /api/integration/pipelines
-GET  /api/integration/metrics
-POST /api/integration/transform
-```
-
-## 🔐 Security & Compliance
-
-### Security Features
-- **JWT Authentication**: Token-based auth with refresh tokens
-- **Role-Based Access Control**: Granular permissions
-- **End-to-End Encryption**: TLS 1.3 for all communications
-- **Audit Logging**: Complete audit trail for compliance
-- **Security Scanning**: Automated vulnerability detection
-
-### EPA Compliance
-- **7-Year Data Retention**: Automated backup and archival
-- **Audit Trail**: Complete data lineage tracking
-- **Compliance Reporting**: Automated EPA report generation
-- **Data Quality Metrics**: Continuous quality monitoring
-
-## 📈 Monitoring & Observability
-
-### Metrics Collection
-- **Application Metrics**: Response times, error rates, throughput
-- **Infrastructure Metrics**: CPU, memory, disk, network
-- **Business Metrics**: User activity, data processing, compliance
-
-### Dashboards
-Pre-configured Grafana dashboards for:
-- System Overview
-- Application Performance
-- Data Pipeline Status
-- Compliance Metrics
-- Quantum Computing Utilization
-
-### Distributed Tracing
-Jaeger integration for:
-- Request flow visualization
-- Performance bottleneck identification
-- Service dependency mapping
-
-## 🧪 Testing
-
-```powershell
-# Run unit tests
-./scripts/run-tests.ps1 -Unit
-
-# Run integration tests
-./scripts/run-tests.ps1 -Integration
-
-# Run performance tests
-./scripts/run-tests.ps1 -Performance
-
-# Run compliance tests
-./scripts/run-tests.ps1 -Compliance
-```
-
-## 📚 Documentation
-
-- [Architecture Guide](docs/architecture.md)
-- [API Documentation](docs/api.md)
-- [Integration Guide](docs/integration.md)
-- [Deployment Guide](docs/deployment.md)
-- [Security Guide](docs/security.md)
-- [Compliance Guide](docs/compliance.md)
-
-## 🤝 Contributing
-
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to this project.
-
-## 📄 License
-
-This project is proprietary software. See [LICENSE](LICENSE) for details.
-
-## 🏢 About Crowe Logic
-
-Crowe Logic specializes in advanced AI solutions combining quantum computing with ecological intelligence for next-generation environmental monitoring and optimization.
-
-### Contact
-- **Website**: https://crowelogic.com
-- **Email**: support@crowelogic.com
-- **GitHub**: https://github.com/crowelogic
-
-## 🚨 System Status
-
-| Component | Status | Version |
-|-----------|--------|---------|
-| MyceliumEI | ✅ Active | v2.0.0 |
-| CroweQuantumNexusAI | ✅ Active | v1.5.0 |
-| Integration Layer | ✅ Active | v1.0.0 |
-| EPA Compliance | ✅ Compliant | 2025 Standards |
-
----
-
-**© 2025 Crowe Logic. All Rights Reserved.**
-
-*Built with quantum intelligence for a sustainable future* 🌍⚛️🍄
+Contact: michael@crowelogic.com
